@@ -14,4 +14,4 @@ Wiki action: **$ARGUMENTS**
 4. Keep an index at `.omm/wiki/README.md`.
 5. Read `document-specialist` for structure; keep entries short.
 
-CLI `omm wiki` is a stub; this command edits `.omm/wiki/` directly.
+CLI `omm wiki [list|show <page>|write <page>]` is live against `.omm/wiki/*.md`. This slash-command still edits wiki pages in-session.

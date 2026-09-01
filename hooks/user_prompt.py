@@ -34,6 +34,13 @@ def main() -> None:
             matched = kw
             break
     extra = {"matched": matched} if matched else {}
+    try:
+        ig = omm.load_json(omm.omm_dir(event) / "intent-gate.json")
+        if isinstance(ig, dict):
+            extra["intent_gate"] = True
+            extra["plan_present"] = (omm.omm_dir(event) / "plan.json").is_file()
+    except Exception:
+        pass
     omm.audit(event, HOOK_ID, extra)
     if matched:
         payload = {

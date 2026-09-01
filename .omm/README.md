@@ -32,6 +32,16 @@ Runtime state for a Muse workspace. Keep this directory **local**; only `.gitkee
 | `team/log.jsonl` | Subagent start/stop events |
 | `explore/` `analysis/` `design/` `debug/` `trace/` `critique/` `reviews/` `security/` `science/` `docs/` `writing/` `interview/` `qa/` `wiki/` `skillify/` | Role-specific notes |
 
+| `ulw.json` / `ultrawork.json` | Ultrawork Stop loop `{active, goal, iterations, max}` |
+| `boulder.json` | Boulder Stop loop until `<promise>DONE</promise>` or max |
+| `todo.json` | `{items, nudge, nudge_cap}` — Stop nudges once while items are open |
+| `compact.json` | Last PreCompact marker `{ts, note}` |
+| `notify.json` | Optional `{url}` http(s) webhook for SessionEnd |
+| `intent-gate.json` | `{required: ["plan"]}` — mutating tools denied until `plan.json` exists |
+| `ask/last.json` | Last `omm ask` skill pick |
+| `mission/queue.json` | `{id, text, status}` items |
+| `wiki/*.md` | File wiki pages |
+
 Hooks write here when the workspace is writable. If a write fails, hooks still print `{}` (or a deny decision) and continue.
 
 ## Skill gate

@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""PreCompact — placeholder. Mention .omm/ so compaction-aware roles flush state.
-
-This hook currently emits an empty decision. Skills should already have written
-durable notes under .omm/ before context is compacted.
-"""
+"""PreCompact — persist a compact marker and a memory line, then emit {}."""
 from __future__ import annotations
 
 import sys
@@ -16,9 +12,19 @@ HOOK_ID = "pre-compact"
 
 
 def main() -> None:
-    event = omm.read_stdin_json()
-    omm.audit(event, HOOK_ID, {"note": "flush .omm/ before compact"})
-    # Placeholder: keep .omm/ mentioned so operators remember to persist state.
+    event = omm.unwrap_event(omm.read_stdin_json())
+    directory = omm.omm_dir(event)
+    note = "flush .omm/ before compact"
+    ts = omm.utc_now()
+    omm.write_json(directory / "compact.json", {"ts": ts, "note": note})
+    try:
+        mem = directory / "memory.md"
+        mem.parent.mkdir(parents=True, exist_ok=True)
+        with mem.open("a", encoding="utf-8") as fh:
+            fh.write(f"- compact {ts}: {note}\n")
+    except OSError:
+        pass
+    omm.audit(event, HOOK_ID, {"note": note})
     omm.emit({})
 
 

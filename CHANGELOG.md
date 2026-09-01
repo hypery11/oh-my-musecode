@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+- File-based companion CLI: `omm team`, `ask`, `wait`, `mission`, `wiki`, `update` (no tmux, no remote model)
+- Stop chain also honors `.omm/ulw.json` / `ultrawork.json`, `.omm/boulder.json`, and a capped `.omm/todo.json` nudge
+- PreCompact writes `.omm/compact.json` and appends `.omm/memory.md`
+- SessionEnd optional http(s) webhook from `.omm/notify.json`
+- Fail-open intent-gate on PreToolUse when `.omm/intent-gate.json` requires `plan`
+
+### Fixed
+- Hook `cwd_from` prefers `workspace_root` / `OMM_DIR` / `MUSE_WORKSPACE` over lying `PWD`
+
+### Notes
+- Still not 1:1 OMC. Templates remain for interview/verify/ralplan/etc.
+
+
 ## 0.1.1 — 2026-09-01 (Taipei)
 
 ### Changed

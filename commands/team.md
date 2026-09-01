@@ -16,4 +16,4 @@ Coordinate a small Muse team for: **$ARGUMENTS**
 6. When finished, run a `/verify`-style evidence pass and summarize.
 
 ## Notes
-CLI `omm team` is a stub; this slash-command is the supported entry. Do not call foreign agent CLIs.
+CLI `omm team [mission...]` is live (writes `.omm/team/mission.md` + `roster.json`; no args lists roster + log). It is file-based, not a tmux dashboard. This slash-command still coordinates in-session `subagent_spawn`. Do not call foreign agent CLIs.

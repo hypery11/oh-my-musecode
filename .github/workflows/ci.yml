@@ -29,3 +29,9 @@ jobs:
         run: python3 tests/test_prompt_keywords.py
       - name: Cwd resolution
         run: python3 tests/test_cwd.py
+      - name: CLI engines
+        run: python3 tests/test_cli.py
+      - name: Stop chain
+        run: python3 tests/test_stop_chain.py
+      - name: Extra hooks
+        run: python3 tests/test_hooks_extra.py

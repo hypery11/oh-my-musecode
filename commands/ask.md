@@ -13,4 +13,4 @@ Question: **$ARGUMENTS**
 3. Answer with evidence and paths. If research is large, `subagent_spawn` an `explore` worker.
 4. Optionally append Q/A to `.omm/ask-log.md`.
 
-Note: CLI `omm ask` is a stub; this command is in-plugin.
+Note: CLI `omm ask` is live as an in-process keyword router over the 19 bundled skills (writes `.omm/ask/last.json`, no remote model). This slash-command still answers in-session.

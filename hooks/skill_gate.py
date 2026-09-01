@@ -95,27 +95,40 @@ def main() -> None:
     mutating = looks_mutating(name, inp)
     omm.audit(event, HOOK_ID, {"mutating": mutating})
 
-    if not isinstance(gate, dict) or not gate.get("enabled"):
-        omm.emit({})
-        return
+    if isinstance(gate, dict) and gate.get("enabled") and mutating:
+        needed = required_skills(gate)
+        if needed:
+            already = read_set(omm.load_json(directory / "read-skills.json"))
+            missing = [s for s in needed if s not in already]
+            if missing:
+                reason = (
+                    "Oh My Muse Code skill gate: mutating tool "
+                    f"{name or '(unknown)'} blocked until these skills are marked read "
+                    f"in .omm/read-skills.json: {', '.join(missing)}"
+                )
+                omm.emit(deny(reason))
+                return
+
+    intent = omm.load_json(directory / "intent-gate.json")
+    if isinstance(intent, dict) and mutating:
+        raw = intent.get("required") or intent.get("requiredSkills") or []
+        if isinstance(raw, str):
+            raw = [raw]
+        needed_i = [str(x) for x in raw] if isinstance(raw, list) else []
+        if "plan" in needed_i or "plan.json" in needed_i:
+            if not (directory / "plan.json").is_file():
+                reason = (
+                    "Oh My Muse Code intent-gate: mutating tool "
+                    f"{name or '(unknown)'} blocked until .omm/plan.json exists"
+                )
+                omm.emit(deny(reason))
+                return
+
     if not mutating:
         omm.emit({})
         return
-
-    needed = required_skills(gate)
-    if not needed:
+    if not isinstance(gate, dict) or not gate.get("enabled"):
         omm.emit({})
-        return
-
-    already = read_set(omm.load_json(directory / "read-skills.json"))
-    missing = [s for s in needed if s not in already]
-    if missing:
-        reason = (
-            "Oh My Muse Code skill gate: mutating tool "
-            f"{name or '(unknown)'} blocked until these skills are marked read "
-            f"in .omm/read-skills.json: {', '.join(missing)}"
-        )
-        omm.emit(deny(reason))
         return
     # Do not emit permissionDecision=allow — empty object lets Muse proceed.
     omm.emit({})

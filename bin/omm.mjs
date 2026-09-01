@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Oh My Muse Code companion CLI (no runtime dependencies).
- * Real work: setup, doctor, and hud text snapshot. Other subcommands are honest stubs.
+ * Real work: setup, doctor, hud snapshot, plus file-based team/ask/wait/mission/wiki/update.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,15 +21,20 @@ Usage:
   omm setup              Print Muse install / approve commands
   omm doctor             Check muse binary + this plugin tree
   omm hud                Text snapshot of .omm/ (not a live TUI)
-  omm team|ask|wait|mission|wiki|update
-                         Planned stubs (plugin slash-commands are the live path)
+  omm team [mission...]  Init .omm/team files; no args lists roster + log
+  omm ask [question...]  Pick a bundled skill by keyword overlap
+  omm wait [seconds]     Poll .omm/team/log.jsonl mtime (default 5)
+  omm mission [text...]  Queue items in .omm/mission/queue.json
+  omm wiki list|show|write
+                         File wiki under .omm/wiki/
+  omm update             Print muse plugins update/approve; optional registry check
   omm -h, --help         Show this help
   omm -V, --version      Print version
 
 Environment:
   MUSE_EXPERIMENTAL_PLUGINS=1   required for Muse 1.0.1 plugin commands
   MUSE_NO_AUTO_UPDATE=1         recommended during validate
-  OMM_DIR                       optional .omm/ path override (hud)
+  OMM_DIR                       optional .omm/ path override
 `;
 
 function print(s) {
@@ -321,8 +326,326 @@ function cmdHud() {
   return 0;
 }
 
-function stub(name) {
-  print(`planned: omm ${name} is a CLI stub — use the matching Muse slash-command in-plugin.`);
+function ensureDir(p) {
+  mkdirSync(p, { recursive: true });
+  return p;
+}
+
+function writeJsonPretty(path, obj) {
+  ensureDir(dirname(path));
+  writeFileSync(path, JSON.stringify(obj, null, 2) + "\n", "utf8");
+}
+
+function readJson(path, fallback) {
+  if (!existsSync(path)) return fallback;
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+function sleepMs(ms) {
+  if (ms <= 0) return;
+  const sab = new SharedArrayBuffer(4);
+  Atomics.wait(new Int32Array(sab), 0, 0, ms);
+}
+
+function lastNonemptyLine(path) {
+  const got = readFileCapped(path, 1024 * 1024);
+  if (!got || got.skipped || !got.text) return "";
+  const lines = got.text.split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => l.trim());
+  return lines.length ? lines[lines.length - 1] : "";
+}
+
+function cmdTeam(args) {
+  const dir = join(resolveOmmDir(), "team");
+  ensureDir(dir);
+  const missionText = args.join(" ").trim();
+  if (missionText) {
+    writeFileSync(join(dir, "mission.md"), "# Mission\n\n" + missionText + "\n", "utf8");
+    const roster = {
+      ts: new Date().toISOString(),
+      mission: missionText,
+      roles: [
+        { role: "architect", skill: "architect" },
+        { role: "planner", skill: "planner" },
+        { role: "executor", skill: "executor" },
+      ],
+    };
+    writeJsonPretty(join(dir, "roster.json"), roster);
+    print("initialized .omm/team/mission.md and roster.json");
+    print("mission: " + missionText);
+    print("note: not a tmux dashboard — file-based roster only");
+    return 0;
+  }
+  const roster = readJson(join(dir, "roster.json"), null);
+  if (roster && typeof roster === "object") {
+    print("roster: " + JSON.stringify(roster.roles || roster));
+    if (roster.mission) print("mission: " + truncate(roster.mission, 120));
+  } else {
+    print("roster: (none — run omm team <mission>)");
+  }
+  const logPath = join(dir, "log.jsonl");
+  if (existsSync(logPath)) {
+    const got = readFileCapped(logPath, 256 * 1024);
+    if (got && got.text) {
+      const lines = got.text.split(/\r?\n/).filter((l) => l.trim());
+      const tail = lines.slice(-5);
+      print("log (" + lines.length + " lines, last " + tail.length + "):");
+      for (const line of tail) print(line);
+    } else {
+      print("log: (empty or skipped)");
+    }
+  } else {
+    print("log: (no .omm/team/log.jsonl)");
+  }
+  return 0;
+}
+
+const SKILL_KEYWORDS = {
+  architect: ["architect", "architecture", "system", "module", "layer", "adr", "structure"],
+  planner: ["plan", "planner", "roadmap", "steps", "milestone", "schedule", "breakdown", "interview"],
+  executor: ["executor", "execute", "implement", "land", "apply", "patch", "code"],
+  explore: ["explore", "search", "find", "locate", "codebase", "where", "lookup"],
+  analyst: ["analyst", "analyze", "analysis", "data", "metrics", "compare", "trend"],
+  designer: ["designer", "design", "ui", "ux", "layout", "visual", "css"],
+  debugger: ["debugger", "debug", "bug", "crash", "stacktrace", "exception", "error"],
+  tracer: ["tracer", "trace", "flow", "callgraph", "path"],
+  critic: ["critic", "critique", "tradeoff", "objection", "review-design"],
+  "code-reviewer": ["review", "reviewer", "pr", "diff", "comment", "nit"],
+  "security-reviewer": ["security", "vuln", "xss", "injection", "cve", "auth", "secret"],
+  "code-simplifier": ["simplify", "simplifier", "refactor", "cleanup", "dead"],
+  "test-engineer": ["test", "unit", "coverage", "pytest", "jest", "spec"],
+  "qa-tester": ["qa", "regression", "acceptance", "smoke", "e2e"],
+  verifier: ["verifier", "verify", "evidence", "acceptance-criteria", "done-definition"],
+  scientist: ["scientist", "experiment", "hypothesis", "ablation", "benchmark"],
+  "document-specialist": ["docs", "documentation", "readme", "changelog", "api-doc"],
+  writer: ["writer", "prose", "copy", "wording", "blog", "narrative"],
+  "git-master": ["git", "commit", "branch", "rebase", "merge", "blame", "cherry"],
+};
+
+function scoreSkill(question) {
+  const q = question.toLowerCase();
+  const tokens = new Set(q.split(/[^a-z0-9+.-]+/).filter(Boolean));
+  let bestId = "explore";
+  let bestScore = 0;
+  let bestHits = [];
+  for (const [id, kws] of Object.entries(SKILL_KEYWORDS)) {
+    const hits = [];
+    let score = 0;
+    for (const kw of kws) {
+      if (q.includes(kw) || tokens.has(kw)) {
+        score += kw.includes(" ") || kw.length > 6 ? 2 : 1;
+        hits.push(kw);
+      }
+    }
+    if (tokens.has(id) || q.includes(id)) {
+      score += 3;
+      hits.push(id);
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestId = id;
+      bestHits = hits;
+    }
+  }
+  return { id: bestId, score: bestScore, hits: bestHits };
+}
+
+function cmdAsk(args) {
+  const question = args.join(" ").trim();
+  if (!question) {
+    print("usage: omm ask [question...]");
+    return 1;
+  }
+  const picked = scoreSkill(question);
+  const reason =
+    picked.score > 0
+      ? "keyword overlap with " + picked.hits.slice(0, 6).join(", ")
+      : "default explore (no keyword overlap)";
+  const rec = {
+    ts: new Date().toISOString(),
+    question,
+    skill: picked.id,
+    score: picked.score,
+    reason,
+  };
+  writeJsonPretty(join(resolveOmmDir(), "ask", "last.json"), rec);
+  print(picked.id);
+  print(reason);
+  return 0;
+}
+
+function cmdWait(args) {
+  const raw = args[0];
+  let seconds = 5;
+  if (raw != null && String(raw).trim() !== "") {
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) {
+      print("usage: omm wait [seconds]");
+      return 1;
+    }
+    seconds = n;
+  }
+  const logPath = join(resolveOmmDir(), "team", "log.jsonl");
+  const started = Date.now();
+  const deadline = started + seconds * 1000;
+  let lastMtime = 0;
+  if (existsSync(logPath)) {
+    try { lastMtime = statSync(logPath).mtimeMs; } catch { lastMtime = 0; }
+  }
+  let changed = false;
+  while (Date.now() < deadline) {
+    if (existsSync(logPath)) {
+      let m = 0;
+      try { m = statSync(logPath).mtimeMs; } catch { m = 0; }
+      if (m > lastMtime) {
+        changed = true;
+        break;
+      }
+    }
+    const remain = deadline - Date.now();
+    if (remain <= 0) break;
+    sleepMs(Math.min(100, remain));
+  }
+  const line = lastNonemptyLine(logPath);
+  if (changed && line) {
+    print(line);
+    return 0;
+  }
+  if (line) {
+    print(line);
+    if (!changed) print("timeout");
+    return 0;
+  }
+  print("timeout");
+  return 1;
+}
+function loadQueue(path) {
+  const data = readJson(path, []);
+  return Array.isArray(data) ? data : [];
+}
+
+function cmdMission(args) {
+  const dir = join(resolveOmmDir(), "mission");
+  ensureDir(dir);
+  const queuePath = join(dir, "queue.json");
+  let queue = loadQueue(queuePath);
+  if (args[0] === "done") {
+    const id = String(args[1] || "").trim();
+    if (!id) {
+      print("usage: omm mission done <id>");
+      return 1;
+    }
+    const item = queue.find((x) => x && String(x.id) === id);
+    if (!item) {
+      print("unknown mission id: " + id);
+      return 1;
+    }
+    item.status = "done";
+    writeJsonPretty(queuePath, queue);
+    print("done " + id);
+    return 0;
+  }
+  const text = args.join(" ").trim();
+  if (!text) {
+    if (!queue.length) {
+      print("(empty mission queue)");
+      return 0;
+    }
+    for (const item of queue) {
+      print(String(item.id) + "\t" + (item.status || "pending") + "\t" + (item.text || ""));
+    }
+    return 0;
+  }
+  let maxId = 0;
+  for (const item of queue) {
+    const n = Number(item && item.id);
+    if (Number.isFinite(n) && n > maxId) maxId = n;
+  }
+  const rec = { id: String(maxId + 1), text, status: "pending" };
+  queue.push(rec);
+  writeJsonPretty(queuePath, queue);
+  print("queued " + rec.id + ": " + text);
+  return 0;
+}
+function wikiFileName(raw) {
+  const base = String(raw || "page").replace(/\\/g, "/").split("/").pop();
+  let slug = String(base).replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!slug) slug = "page";
+  return slug.endsWith(".md") ? slug : slug + ".md";
+}
+
+function cmdWiki(args) {
+  const wikiDir = join(resolveOmmDir(), "wiki");
+  ensureDir(wikiDir);
+  const sub = args[0] || "list";
+  if (sub === "list") {
+    const files = readdirSync(wikiDir).filter((f) => f.endsWith(".md")).sort();
+    if (!files.length) {
+      print("(empty wiki)");
+      return 0;
+    }
+    for (const f of files) print(f.replace(/\.md$/, ""));
+    return 0;
+  }
+  if (sub === "show") {
+    const page = args[1];
+    if (!page) {
+      print("usage: omm wiki show <page>");
+      return 1;
+    }
+    const path = join(wikiDir, wikiFileName(page));
+    if (!existsSync(path)) {
+      print("missing wiki page: " + page);
+      return 1;
+    }
+    print(readFileSync(path, "utf8").replace(/\n$/, ""));
+    return 0;
+  }
+  if (sub === "write") {
+    const page = args[1];
+    if (!page) {
+      print("usage: omm wiki write <page> [body...]");
+      return 1;
+    }
+    const bodyArgs = args.slice(2).join(" ").trim();
+    const title = String(page).replace(/\.md$/i, "");
+    const body = bodyArgs || ("# " + title + "\n\nstub\n");
+    const path = join(wikiDir, wikiFileName(page));
+    writeFileSync(path, body.endsWith("\n") ? body : body + "\n", "utf8");
+    print("wrote " + path);
+    return 0;
+  }
+  print("usage: omm wiki [list|show <page>|write <page>]");
+  return 1;
+}
+function cmdUpdate() {
+  const path = pluginPathHint();
+  print("# Oh My Muse Code — refresh hashes / version");
+  print("");
+  print("export MUSE_EXPERIMENTAL_PLUGINS=1");
+  print("muse plugins update oh-my-musecode --json");
+  print("muse plugins approve oh-my-musecode --json");
+  print("");
+  print("plugin tree: " + path);
+  print("local version: " + VERSION);
+  const npmUrl = "https://registry.npmjs.org/oh-my-musecode/latest";
+  const curl = spawnSync("curl", ["-fsS", "--max-time", "5", npmUrl], { encoding: "utf8" });
+  if (curl.status === 0 && curl.stdout) {
+    try {
+      const j = JSON.parse(curl.stdout);
+      const remoteVer = j.version || "(unknown)";
+      print("registry version: " + remoteVer);
+      if (j.version && j.version !== VERSION) print("note: local VERSION differs from registry");
+    } catch {
+      print("registry: unreadable (non-fatal)");
+    }
+  } else {
+    print("registry: offline (non-fatal)");
+  }
+  return 0;
 }
 
 function main(argv) {
@@ -347,13 +670,17 @@ function main(argv) {
       cmdHud();
       return 0;
     case "team":
+      return cmdTeam(args.slice(1));
     case "ask":
+      return cmdAsk(args.slice(1));
     case "wait":
+      return cmdWait(args.slice(1));
     case "mission":
+      return cmdMission(args.slice(1));
     case "wiki":
+      return cmdWiki(args.slice(1));
     case "update":
-      stub(cmd);
-      return 0;
+      return cmdUpdate();
     default:
       print(`unknown command: ${cmd}`);
       print("try: omm --help");

@@ -1,0 +1,11 @@
+{
+  "event": "Stop",
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "00000000-0000-0000-0000-000000000014",
+    "cwd": "/tmp/omm-boulder-cwd",
+    "permission_mode": "on-request",
+    "tool_name": "",
+    "tool_input": {}
+  }
+}
