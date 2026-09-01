@@ -25,7 +25,7 @@ Evidence classes for OMM rows: hook scripts under `hooks/`, `bin/omm.mjs`, `.mus
 
 **v0.1.0 is a declared-surface plus stubs, not a full port of the public feature surface.**
 
-The catalog is wide: 19 role skills, 19 slash-commands, 8 hook ids, and an `omm` CLI. What actually runs is a thin Python hook set (keyword to `.omm/mode.json`, optional skill-gate deny, Ralph `systemMessage` stop nudge, subagent JSONL, session greeting) plus `omm setup` / `omm doctor`. Everything named after OMC live engines — team tmux, ask providers, HUD statusline, ralph/ulw completion-promise loops, boulder/todo continuation, autopilot stage machine, wiki/memory/verify ledgers with session hooks — is either a prompt template, a CLI stub, or absent. OMG hashline / intent-gate / LSP / vendored superpowers are absent. Muse cannot host Claude statusline, Haiku/Opus routing, or plugin `apps`/`agents`; MCP and reminders are legal and still empty.
+The catalog is wide: 19 role skills, 19 slash-commands, 8 hook ids, and an `omm` CLI. What actually runs is a thin Python hook set (keyword to `.omm/mode.json`, optional skill-gate deny, Ralph `systemMessage` stop nudge, subagent JSONL, session greeting) plus `omm setup` / `omm doctor`, and a real Ralph Stop `decision:block`. Everything else named after OMC live engines — team tmux, ask providers, HUD statusline, ralph/ulw completion-promise loops, boulder/todo continuation, autopilot stage machine, wiki/memory/verify ledgers with session hooks — is either a prompt template, a CLI stub, or absent. OMG hashline / intent-gate / LSP / vendored superpowers are absent. Muse cannot host Claude statusline, Haiku/Opus routing, or plugin `apps`/`agents`; MCP and reminders are legal and still empty.
 
 Calling this a port of OMC 5.x / OMX 0.21 / OMG 0.2 would overclaim. It is a Muse-native nameplate and prompt catalog with a few real gates.
 
@@ -34,7 +34,7 @@ Calling this a port of OMC 5.x / OMX 0.21 / OMG 0.2 would overclaim. It is a Mus
 | Feature | OMC | OMX | OMG | OMM v0.1 | Status |
 |---------|-----|-----|-----|----------|--------|
 | 19 role catalog | live agents + routing | role skills / workers | different 3-agent set | 19 SKILL.md files | TEMPLATE |
-| `/ralph` + stop continuation | live persistent-mode | live Stop dispatcher | Go ralph/ulw + promise tags | command md + stop-chain systemMessage | ADAPTED |
+| `/ralph` + stop continuation | live persistent-mode | live Stop dispatcher | Go ralph/ulw + promise tags | command md + stop-chain `decision:block` (hook test confirmed) | SHIPPED (adapted) |
 | `/ulw` / ultrawork | ultrathink keyword + loops | ultrawork skill | `/ulw-loop` + oracle | keyword writes mode.json only | MISSING |
 | `/ralplan` | live skill | live skill | prometheus `/plan` | command md | TEMPLATE |
 | Skill-gate | pre-tool enforcer + Read tracking | PreToolUse dispatcher | catalog Read, fail-open | opt-in `.omm/skill-gate.json` deny | ADAPTED |
@@ -86,8 +86,8 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 
 | Piece | What peers do | What OMM does | Status |
 |-------|---------------|---------------|--------|
-| `/ralph` | OMC persistent-mode Stop hooks; OMG writes `.omg/ralph-loop.local.md`, blocks Stop until a completion promise, max 100 | `commands/ralph.md` tells the model to write `.omm/ralph.json`; hook only nudges | TEMPLATE + ADAPTED hook |
-| Stop continuation | OMC `persistent-mode.mjs`; OMG Stop block JSON; OMX Stop in `codex-native-hook.mjs` | `hooks/stop_chain.py`: if `ralph.json.active` and `iterations < max`, emit `{systemMessage: "Ralph loop still active..."}`. Does not increment iterations, does not emit a Stop block decision, no abort-reason matrix | SHIPPED (nudge only) |
+| `/ralph` | OMC persistent-mode Stop hooks; OMG writes `.omg/ralph-loop.local.md`, blocks Stop until a completion promise, max 100 | `commands/ralph.md` arms `.omm/ralph.json`; Stop hook blocks until DONE or budget | TEMPLATE + SHIPPED hook |
+| Stop continuation | OMC `persistent-mode.mjs`; OMG Stop block JSON; OMX Stop in `codex-native-hook.mjs` | `hooks/stop_chain.py` emits `{decision:"block",reason}` while active and under budget; increments iterations; `<promise>DONE</promise>` or abort/cancel allows exit. Confirmed `should_block: true` via `muse plugins hook test` on Stop | SHIPPED (adapted) |
 | Keyword arming | OMC `keyword-detector.mjs` (ralph, ralplan, ultrathink, autopilot, cancelomc, ...) | `hooks/user_prompt.py` writes `.omm/mode.json` for ralplan/ralph/ultrathink/autopilot. No cancel token, no additionalContext injection | SHIPPED (mode file only) |
 | `/ulw-loop` / ultrawork | OMG max 500 + oracle VERIFIED; OMX ultrawork skill | ultrathink is a keyword alias only; no ulw skill, no oracle, no `/ulw` command | MISSING |
 | `/ralplan` | OMC/OMX live iterative planning skills | `commands/ralplan.md` writes plan + inactive `ralph.json` | TEMPLATE |
@@ -103,7 +103,7 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 | Mark skill loaded on Read | OMG PostToolUse Read to skills.loaded | no PostToolUse hook at all | MISSING |
 | Deny mutating tools | OMG always-on if catalog nonempty; OMC `pre-tool-enforcer.mjs` | `hooks/skill_gate.py` opt-in via `.omm/skill-gate.json` `{enabled, required}`. Compares to `.omm/read-skills.json` (must be written by the model). Denies Write/Edit/StrReplace and write-ish Bash. Emits Muse `permissionDecision=deny`; never bare `allow` | SHIPPED / ADAPTED (weaker) |
 | Plan-mode write jail | OMG prometheus deny outside `.omg/**/*.md` | none | MISSING |
-| Stop: ralph | yes | yes, systemMessage | ADAPTED |
+| Stop: ralph | yes | `decision:block` + DONE promise | SHIPPED (adapted) |
 | Stop: boulder plan checkboxes | OMG/OMC boulder-state | none | MISSING |
 | Stop: todo enforcer | OMG cooldown + OMC todo-continuation | none | MISSING |
 | Stop: LSP errors | OMG | none | MISSING |

@@ -4,6 +4,8 @@
 
 **Meta Muse Code 缺少的生產力層。**
 
+![Oh My Muse Code demo](docs/assets/omm-demo.gif)
+
 Agent：先讀 [AGENTS.md](AGENTS.md)，不必從這份 README 推敲。
 
 Oh My Muse Code（plugin id `oh-my-musecode`，CLI `omm`）在原版 Muse 之上補上角色技能、斜線指令、session hooks，以及可持久化的 `.omm/` 狀態。
@@ -19,6 +21,7 @@ Oh My Muse Code（plugin id `oh-my-musecode`，CLI `omm`）在原版 Muse 之上
 | 表面 | 是否可用 |
 |------|----------|
 | 原生 plugin（19 技能、19 指令、8 hooks） | **Plugin 已就緒** — 請用 Muse 1.0.1-R2006.1 驗證 |
+| Ralph Stop 迴圈（`decision: block`） | **已上線** — `hook test` 確認 `should_block: true` |
 | `omm setup` / `omm doctor` | **已實作**（本地 CLI，無依賴） |
 | `omm team` `ask` `hud` `wait` `mission` `wiki` `update` | **CLI 占位** — 只印 `planned: ...` |
 | 斜線指令 `/team` `/ask` `/hud` 等 | **Plugin 已就緒**（會話內模板，不是即時 tmux HUD） |

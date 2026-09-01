@@ -2,8 +2,11 @@
 
 [![License: MIT](https://img.shields.io/github/license/hypery11/oh-my-musecode)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/hypery11/oh-my-musecode/ci.yml?branch=main)](https://github.com/hypery11/oh-my-musecode/actions)
+[![Release](https://img.shields.io/github/v/release/hypery11/oh-my-musecode)](https://github.com/hypery11/oh-my-musecode/releases)
 
 **The missing productivity layer for Meta Muse Code.**
+
+![Oh My Muse Code demo](docs/assets/omm-demo.gif)
 
 Agents: skip this README and read [AGENTS.md](AGENTS.md).
 
@@ -18,6 +21,7 @@ License: MIT. Copyright 2026 hypery11.
 | Surface | Ready? |
 |---------|--------|
 | Native plugin (19 skills, 19 commands, 8 hooks) | **Plugin-ready** — validate with Muse 1.0.1-R2006.1 |
+| Ralph Stop loop (`decision: block`) | **Shipped** — `muse plugins hook test` confirms `should_block: true` |
 | `omm setup` / `omm doctor` | **Implemented** (local CLI, no deps) |
 | `omm team` `ask` `hud` `wait` `mission` `wiki` `update` | **CLI stubs** — print `planned: ...` |
 | Slash-commands `/team` `/ask` `/hud` etc. | **Plugin-ready** (in-session templates, not a live tmux HUD) |

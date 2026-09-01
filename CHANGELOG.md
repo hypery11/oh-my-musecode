@@ -3,6 +3,8 @@
 ## 0.1.0 — 2026-09-01
 
 ### Added
+- Ralph Stop loop: `stop-chain` emits `{"decision":"block"}` while `.omm/ralph.json` is active (confirmed via `muse plugins hook test`)
+- README demo GIF (`docs/assets/omm-demo.gif`)
 - Native Muse plugin `oh-my-musecode`: 19 role skills, 19 slash-commands, 8 hooks
 - Companion CLI `omm`: `setup` and `doctor` are real; `team|ask|hud|wait|mission|wiki|update` are stubs
 - `.omm/` workspace state conventions
