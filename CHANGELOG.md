@@ -1,6 +1,7 @@
-# Changelog
-
 ## Unreleased
+
+### Changed
+- README demo GIF refreshed with real ralplan/hud/Ralph-block/ask stdout for 0.3.0
 
 ## 0.3.0 — 2026-09-01 (Taipei)
 
