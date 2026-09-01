@@ -15,3 +15,6 @@ Ralph-oriented planning for: **$ARGUMENTS**
 5. Tell the user to run `/ralph` when ready.
 
 Persist everything under `.omm/`.
+
+## Notes
+CLI `omm ralplan [topic...]` is live for state files (`.omm/mode.json` `{mode:ralplan,topic}`, `plan.md` stub if missing, `ralph.json` `{active:false, goal, iterations:0, max:20}`). In-session Muse still follows this markdown for questions and planning prose.

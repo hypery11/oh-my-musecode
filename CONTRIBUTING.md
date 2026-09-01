@@ -17,7 +17,7 @@ Run Muse plugins validate on this directory. Experimental plugins must be on. Ex
 
 ## CLI
 
-The companion binary has no package dependencies. Keep it that way. setup and doctor should remain real; other subcommands may stay stubs until implemented.
+The companion binary has no package dependencies. Keep it that way. All documented `omm` verbs are file-based engines (not tmux, not a remote model). Slash-commands remain in-session interviewers.
 
 ## Docs
 

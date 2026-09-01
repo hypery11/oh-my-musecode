@@ -25,10 +25,10 @@ Oh My Muse Code（plugin id `oh-my-musecode`，CLI `omm`）在原版 Muse 之上
 | Ralph Stop 迴圈（`decision: block`） | **已上線** — `hook test` 確認 `should_block: true` |
 | `omm setup` / `omm doctor` | **已實作**（本地 CLI，無依賴） |
 | `omm hud` | **已實作** — `.omm/` 文字快照（不是即時 TUI） |
-| `omm team` `ask` `wait` `mission` `wiki` `update` | **已實作** — 檔案型 `.omm/` 狀態（不是 tmux / 不是遠端 ask） |
+| `omm team` `ask` `wait` `mission` `wiki` `update` 以及 ralplan/interview/verify/autopilot/execute | **已實作** — 檔案型 `.omm/` 狀態（不是 tmux / 不是遠端 ask） |
 | 斜線指令 `/team` `/ask` `/hud` 等 | **Plugin 已就緒**（會話內模板，不是即時 tmux HUD） |
 
-本版**沒有**即時 tmux 團隊儀表板、Claude statusline 或遠端 ask 傳輸。`omm team` / `omm ask` 是檔案型（名單 + 關鍵字技能路由）。
+本版**沒有**即時 tmux 團隊儀表板、Claude statusline 或遠端 ask 傳輸。`omm team` / `omm ask` 是檔案型（名單 + SKILL.md 描述路由）。
 
 Muse 1.0.1 的 plugin API 仍是**實驗功能**，必須設定 `MUSE_EXPERIMENTAL_PLUGINS=1`。
 
@@ -71,7 +71,7 @@ Marketplace（把 git remote 加進來源後）：
 | 會話狀態 | 聊天與 transcript | 可持久化的 `.omm/` 計畫、記憶、追蹤、驗證報告 |
 | Hooks | 自己寫 | 8 個：session、關鍵字、skill/intent gate、Ralph/ulw/boulder/todo stop-chain、subagent 紀錄、compact 寫入、可選 session-end webhook |
 | 多 agent | `subagent_spawn` + worktrees | 同一套 Muse 工具，加上 team roster/log 慣例 |
-| 伴隨 CLI | `muse` | `omm setup` / `doctor` / `hud`，以及檔案型 `team` `ask` `wait` `mission` `wiki` `update` |
+| 伴隨 CLI | `muse` | `omm setup` / `doctor` / `hud`，以及檔案型 team/ask/wiki 與 ralplan/interview/verify/autopilot 引擎 |
 | 實驗旗標 | plugins 需要 | 文件已標明；1.0.1-R2006.1 必開 |
 
 ## 功能
@@ -87,13 +87,13 @@ architect、planner、executor、explore、analyst、designer、debugger、trace
 | 指令 | 用途 |
 |------|------|
 | `/team` | 多技能任務與 `.omm/team/` 名單 |
-| `/autopilot` | 先規劃再執行，輕量監督 |
-| `/execute` | 執行一個計畫步驟或具體任務 |
+| `/autopilot` | 先規劃再執行（CLI autopilot.json；Stop 在 todo 之後） |
+| `/execute` | 執行一個計畫步驟或具體任務（CLI 更新 plan.json + progress.md） |
 | `/ralph` | 做到完成為止的迴圈（有迭代上限） |
-| `/ralplan` | 給 Ralph 用的規劃訪談 |
-| `/deep-interview` | 需求訪談 |
-| `/ask` | 把問題路由到最適技能（會話內；CLI 關鍵字路由已上線） |
-| `/verify` | 用證據關門，而不是憑感覺 |
+| `/ralplan` | 給 Ralph 用的規劃（CLI 寫 plan stub + 未啟動 ralph.json） |
+| `/deep-interview` | 需求訪談（CLI 寫 interview stamp + requirements.md） |
+| `/ask` | 把問題路由到最適技能（會話內；CLI 依 SKILL.md 描述計分） |
+| `/verify` | 用證據關門（CLI pending/pass/fail 狀態檔） |
 | `/ultragoal` | 北極星目標與第一個里程碑 |
 | `/handoff` | 下一場會話交接 |
 | `/skillify` | 從工作流草擬新技能 |
@@ -113,7 +113,7 @@ architect、planner、executor、explore、analyst、designer、debugger、trace
 | SessionStart | session-start | 可選系統訊息，列出 `/commands` |
 | UserPromptSubmit | prompt-keywords | 提示含 ralph/ralplan/ultrathink/autopilot 時寫入 `.omm/mode.json` |
 | PreToolUse | skill-gate | 可選 skill-gate + 失敗開放的 intent-gate（plan.json） |
-| Stop | stop-chain | Ralph，然後 ulw/ultrawork、boulder，再做一次有上限的 todo 提醒 |
+| Stop | stop-chain | Ralph，然後 ulw/ultrawork、boulder、有上限的 todo 提醒，然後 autopilot |
 | SubagentStart | subagent-start | 追加 `.omm/team/log.jsonl` |
 | SubagentStop | subagent-stop | 同上 |
 | PreCompact | pre-compact | 寫入 `.omm/compact.json` 並追加 `.omm/memory.md` |
@@ -132,7 +132,8 @@ architect、planner、executor、explore、analyst、designer、debugger、trace
 - `omm setup` — 印出帶實驗旗標的 Muse 安裝／核准指令
 - `omm doctor` — 尋找 `muse`、檢查本樹、若找到二進位則跑 validate
 - `omm hud` — `.omm/` 文字快照（不是即時 TUI）
-- `omm team|ask|wait|mission|wiki|update` — 占位（`planned: ...`）
+- `omm team|ask|wait|mission|wiki|update` — 檔案型 `.omm/` 引擎（不是 tmux / 不是遠端模型）
+- `omm ralplan` `interview` `ultragoal` `handoff` `skillify` `verify` `autopilot` `execute` `remember` `debug` `trace` — 檔案型狀態引擎（斜線指令仍負責會話內提問）
 - `-h` / `--help` 與 `-V`
 
 ## 目錄
@@ -141,7 +142,7 @@ architect、planner、executor、explore、analyst、designer、debugger、trace
     skills/<id>/SKILL.md
     commands/<id>.md
     hooks/*.py
-    bin/omm.mjs
+    bin/omm.mjs + bin/lib/
     .omm/                 （執行期；大多被 gitignore）
 
 ## 貢獻

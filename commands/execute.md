@@ -15,3 +15,6 @@ Execute: **$ARGUMENTS**
 5. Update plan statuses. Stop after one step unless the user asked for more.
 
 Muse-native tools only. State in `.omm/`.
+
+## Notes
+CLI `omm execute [step-or-task...]` is live: picks the next pending `plan.json` step (or uses args as the task), marks it in-progress, appends `progress.md`. `omm execute done` marks the current in-progress step done. In-session Muse still follows this markdown for the actual code change.

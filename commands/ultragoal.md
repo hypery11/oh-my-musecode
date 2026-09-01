@@ -15,3 +15,6 @@ Ultra goal: **$ARGUMENTS**
 5. Recommend `/autopilot` or `/ralph` for execution.
 
 Keep state in `.omm/`. Use Muse `subagent_spawn` for divergent option sketches.
+
+## Notes
+CLI `omm ultragoal [goal...]` is live for state files (`.omm/mode.json` ultragoal, `ultragoal.md`, `plan.json` milestone-1 pending steps). In-session Muse still follows this markdown for vision/metrics prose.

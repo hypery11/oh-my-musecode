@@ -14,3 +14,6 @@ Trace: **$ARGUMENTS**
 4. Call out `.omm/` side effects and hook scripts involved.
 
 Use `subagent_spawn` if multiple subsystems must be scanned in parallel.
+
+## Notes
+CLI `omm trace [target...]` is live: writes `.omm/trace/<slug>.md` with a **static** outline of this plugin's hooks/commands (not a live tracer of user code). In-session Muse still follows this markdown when walking a specific flow.

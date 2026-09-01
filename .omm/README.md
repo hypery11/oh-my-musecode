@@ -59,3 +59,8 @@ Mark a skill as read:
 ```
 
 or `{"skills": ["planner"]}`.
+
+| `autopilot.json` | `{active, step, max, goal}` — Stop loop after ralph/ulw/boulder/todo |
+| `progress.md` | Executor notes from `omm execute` |
+| `ask/last.json` | `{query, skill, score, reason, alternatives}` |
+

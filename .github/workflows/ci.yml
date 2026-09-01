@@ -22,7 +22,11 @@ jobs:
       - name: Compile hooks
         run: python3 -m py_compile hooks/*.py
       - name: Check CLI
-        run: node --check bin/omm.mjs
+        run: |
+          node --check bin/omm.mjs
+          node --check bin/lib/fs.mjs
+          node --check bin/lib/skills.mjs
+          node --check bin/lib/engines.mjs
       - name: Manifest sanity
         run: python3 scripts/check-manifest.py
       - name: Keyword hook

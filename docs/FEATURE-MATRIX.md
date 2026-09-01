@@ -1,6 +1,6 @@
-> v0.2.0 ships file-based team/ask/wait/mission/wiki/update CLI + extended Stop chain. Still not a 1:1 OMC port.
+> v0.3.0 ships file-based ralplan/interview/verify/autopilot engines + SKILL.md ask router. Still not a 1:1 port.
 
-# Oh My Muse Code v0.2.0 — feature completeness matrix
+# Oh My Muse Code v0.3.0 — feature completeness matrix
 
 Compared against public surfaces of:
 
@@ -25,38 +25,38 @@ Evidence classes for OMM rows: hook scripts under `hooks/`, `bin/omm.mjs`, `.mus
 
 ## Verdict
 
-**Still not a 1:1 OMC/OMX/OMG port.** The catalog is wide; live engines are file-based `.omm/` state machines plus hooks. Interview/verify/ralplan/etc. remain markdown templates. Skipped on purpose: live tmux team dashboard, Claude statusline, Haiku/Opus routing, hashline, LSP, bundled MCP, vendored superpowers, wrapping Muse `/loop`.
+**Still not a 1:1 OMC/OMX/OMG port.** The catalog is wide; live engines are file-based `.omm/` state machines plus hooks. Interview/verify/ralplan/autopilot/execute slash-commands remain in-session interviewers; companion CLI now writes the matching `.omm/` state files. Skipped on purpose: live tmux team dashboard, Claude statusline, Haiku/Opus routing, hashline, LSP, bundled MCP, vendored superpowers, wrapping Muse `/loop`.
 
-What actually runs: Python hooks (keyword mode, skill-gate, fail-open intent-gate, Ralph/ulw/boulder/todo Stop chain, subagent JSONL, compact flush, optional session-end webhook) plus `omm` file-based verbs (`setup` `doctor` `hud` `team` `ask` `wait` `mission` `wiki` `update`). Interview/verify/ralplan/autopilot/execute remain templates. Hashline, LSP, bundled MCP, vendored superpowers, live tmux, Claude statusline, Haiku/Opus routing, and wrapping Muse `/loop` are skipped. Muse cannot host statusline or `apps`/`agents`; MCP arrays stay empty.
+What actually runs: Python hooks (keyword mode, skill-gate, fail-open intent-gate, Ralph/ulw/boulder/todo/autopilot Stop chain, subagent JSONL, compact flush, optional session-end webhook) plus `omm` file-based verbs (`setup` `doctor` `hud` `team` `ask` `wait` `mission` `wiki` `update` `ralplan` `interview` `ultragoal` `handoff` `skillify` `verify` `autopilot` `execute` `remember` `debug` `trace`). Slash-commands remain in-session interviewers. Hashline, LSP, bundled MCP, vendored superpowers, live tmux, Claude statusline, Haiku/Opus routing, and wrapping Muse `/loop` are skipped. Muse cannot host statusline or `apps`/`agents`; MCP arrays stay empty.
 
 ## Compact scoreboard
 
-| Feature | OMC | OMX | OMG | OMM v0.2 | Status |
+| Feature | OMC | OMX | OMG | OMM v0.3 | Status |
 |---------|-----|-----|-----|----------|--------|
-| 19 role catalog | live agents + routing | role skills / workers | different 3-agent set | 19 SKILL.md files | TEMPLATE |
+| 19 role catalog | live agents + routing | role skills / workers | different 3-agent set | 19 SKILL.md files + `omm ask` YAML router | TEMPLATE skills; SHIPPED (adapted, file-based) router |
 | `/ralph` + stop continuation | live persistent-mode | live Stop dispatcher | Go ralph/ulw + promise tags | command md + stop-chain `decision:block` (hook test confirmed) | SHIPPED (adapted) |
 | `/ulw` / ultrawork | ultrathink keyword + loops | ultrawork skill | `/ulw-loop` + oracle | keyword writes mode.json; Stop blocks on `.omm/ulw.json` or `ultrawork.json` | SHIPPED (adapted, no oracle) |
-| `/ralplan` | live skill | live skill | prometheus `/plan` | command md | TEMPLATE |
+| `/ralplan` | live skill | live skill | prometheus `/plan` | CLI writes mode/plan.md/ralph.json (inactive); slash interviews | SHIPPED (adapted, file-based); slash interviewer |
 | Skill-gate | pre-tool enforcer + Read tracking | PreToolUse dispatcher | catalog Read, fail-open | opt-in `.omm/skill-gate.json` deny | ADAPTED |
-| Unified Stop chain | persistent-mode + drift + simplifier | Stop in native hook | ralph then boulder then todo then LSP then plan.md | ralph then ulw then boulder then capped todo nudge | ADAPTED |
+| Unified Stop chain | persistent-mode + drift + simplifier | Stop in native hook | ralph then boulder then todo then LSP then plan.md | ralph then ulw then boulder then capped todo nudge then autopilot | ADAPTED |
 | `/team` + worktrees | native team + `omc team` tmux | team runtime | n/a | command md + subagent log; CLI writes mission/roster (not tmux) | TEMPLATE + SHIPPED (adapted) |
-| `ask` providers | live `omc ask` / `/ask` | live ask skill | n/a | command md; CLI in-process keyword router (no remote model) | TEMPLATE + SHIPPED (adapted) |
-| HUD / statusline | live `omc hud` + Claude statusline | live HUD | n/a | CLI text snapshot of `.omm/`; slash `/hud` template; no live statusline | CLI snapshot SHIPPED (adapted); live statusline CANNOT; slash `/hud` TEMPLATE |
-| `/deep-interview` | live Socratic skill | live skill | n/a | command md | TEMPLATE |
-| `/ultragoal` | artifacts + CLI | live skill | n/a | command md | TEMPLATE |
-| `/handoff` | session artifacts | session | skill + prompt collector | command md | TEMPLATE |
-| `/skillify` | quality-gated extractor | n/a | writing-skills via superpowers | command md | TEMPLATE |
+| `ask` providers | live `omc ask` / `/ask` | live ask skill | n/a | command md; CLI scores SKILL.md description+id (no remote model) | TEMPLATE + SHIPPED (adapted, file-based) |
+| HUD / statusline | live `omc hud` + Claude statusline | live HUD | n/a | CLI text snapshot of `.omm/` (ralph/plan/verify/team/memory/autopilot/interview/debug/trace/handoff when present); slash `/hud` template; no live statusline | CLI snapshot SHIPPED (adapted); live statusline CANNOT; slash `/hud` TEMPLATE |
+| `/deep-interview` | live Socratic skill | live skill | n/a | CLI `interview`/`deep-interview` writes stamp + requirements.md; slash interviews | SHIPPED (adapted, file-based); slash interviewer |
+| `/ultragoal` | artifacts + CLI | live skill | n/a | CLI writes mode/ultragoal.md/milestone-1 plan.json; slash fills prose | SHIPPED (adapted, file-based); slash interviewer |
+| `/handoff` | session artifacts | session | skill + prompt collector | CLI writes handoff.md from mode/plan/verify/team (no secrets) | SHIPPED (adapted, file-based); slash interviewer |
+| `/skillify` | quality-gated extractor | n/a | writing-skills via superpowers | CLI drafts `.omm/skillify/`; `--apply` only for portable slugs | SHIPPED (adapted, file-based); slash interviewer |
 | `/wiki` | session start/end + compact hooks | wiki skill | n/a | command md; CLI files under `.omm/wiki/` | TEMPLATE + SHIPPED |
 | `mission` queue | missions dir + CLI | mission runner | n/a | CLI `.omm/mission/queue.json` | SHIPPED (adapted) |
 | Notifications | Telegram/Discord/Slack/OpenClaw | configure-notifications | n/a | optional SessionEnd POST from `.omm/notify.json` http(s) URL | SHIPPED (adapted) |
 | Compact persistence | pre-compact + wiki + memory | Pre/PostCompact | n/a | writes `.omm/compact.json` + appends `memory.md`; still emits `{}` | SHIPPED (adapted) |
 | `setup` / `doctor` | live CLI + skills | live | n/a | CLI real; slash md | SHIPPED + TEMPLATE |
-| `/remember` | project-memory hooks | n/a | n/a | command md | TEMPLATE |
-| `/trace` | live skill | n/a | n/a | `/omm-trace` md | TEMPLATE |
-| `/debug` | live skill | n/a | n/a | command md | TEMPLATE |
-| `/verify` | evidence loop engine | verification src | Stop LSP/plan checks | command md | TEMPLATE |
-| `/autopilot` | stage machine + Stop + HUD | live skill | n/a | command md + keyword | TEMPLATE |
-| `/execute` | verify/fix engine | n/a | boulder `/start-work` | command md | TEMPLATE |
+| `/remember` | project-memory hooks | n/a | n/a | CLI appends memory.md + memory.jsonl; refuses secrets | SHIPPED (adapted, file-based); slash interviewer |
+| `/trace` | live skill | n/a | n/a | CLI static plugin outline under `.omm/trace/` | SHIPPED (adapted, file-based); slash interviewer |
+| `/debug` | live skill | n/a | n/a | CLI writes `.omm/debug/<stamp>.md` + mode debug | SHIPPED (adapted, file-based); slash interviewer |
+| `/verify` | evidence loop engine | verification src | Stop LSP/plan checks | CLI verify.json pending/pass/fail; slash still gathers evidence | SHIPPED (adapted, file-based); slash interviewer |
+| `/autopilot` | stage machine + Stop + HUD | live skill | n/a | CLI autopilot.json + Stop after todo; slash walks steps | SHIPPED (adapted, file-based); slash interviewer |
+| `/execute` | verify/fix engine | n/a | boulder `/start-work` | CLI marks plan.json in-progress/done + progress.md | SHIPPED (adapted, file-based); slash interviewer |
 | Boulder / todo continuation | boulder-state + todo-continuation | state model | Go boulder + todo enforcer | Stop reads `.omm/boulder.json` + capped `.omm/todo.json` nudge | SHIPPED (adapted) |
 | Intent-gate | prompt prerequisites / keywords | planning gate | INTENT_GATE collector | fail-open `.omm/intent-gate.json`; PreToolUse deny if plan.json missing | SHIPPED (adapted) |
 | Hashline | n/a (different edit model) | n/a | xxhash line tags + PreTool deny | none | CANNOT / intentional |
@@ -74,7 +74,7 @@ What actually runs: Python hooks (keyword mode, skill-gate, fail-open intent-gat
 
 OMC ships `agents/` markdown for architect, planner, executor, explore, analyst, designer, debugger, tracer, critic, code-reviewer, security-reviewer, code-simplifier, test-engineer, qa-tester, verifier, scientist, document-specialist, writer, git-master, plus TypeScript routing (`src/agents`, model matrix, delegation enforcer). OMX maps an overlapping but smaller live skill set (analyze, design, git-master, worker, code-review). OMG does not use this 19-role catalog; it uses prometheus/metis/momus plus loop skills.
 
-OMM copies the names into `skills/<id>/SKILL.md` (19 files, all declared in `plugin.json`). Each file is an original Muse role recipe: when to activate, `.omm/` paths, `subagent_spawn`, `.muse/worktrees/`. There is no router, no model tier, no entitlement graph.
+OMM copies the names into `skills/<id>/SKILL.md` (19 files, all declared in `plugin.json`). Each file is an original Muse role recipe: when to activate, `.omm/` paths, `subagent_spawn`, `.muse/worktrees/`. `omm ask` scores those YAML descriptions (no remote model, no model tier, no entitlement graph).
 
 | Role | OMM artifact | Status vs OMC live agent |
 |------|----------------|-------------------------|
@@ -90,9 +90,9 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 | Stop continuation | OMC `persistent-mode.mjs`; OMG Stop block JSON; OMX Stop in `codex-native-hook.mjs` | `hooks/stop_chain.py` emits `{decision:"block",reason}` while active and under budget; increments iterations; `<promise>DONE</promise>` or abort/cancel allows exit. Confirmed `should_block: true` via `muse plugins hook test` on Stop | SHIPPED (adapted) |
 | Keyword arming | OMC `keyword-detector.mjs` (ralph, ralplan, ultrathink, autopilot, cancelomc, ...) | `hooks/user_prompt.py` writes `.omm/mode.json` for ralplan/ralph/ultrathink/autopilot. No cancel token, no additionalContext injection | SHIPPED (mode file only) |
 | `/ulw-loop` / ultrawork | OMG max 500 + oracle VERIFIED; OMX ultrawork skill | ultrathink keyword + Stop loop on `.omm/ulw.json` or `ultrawork.json`; no oracle, no `/ulw` command | SHIPPED (adapted) |
-| `/ralplan` | OMC/OMX live iterative planning skills | `commands/ralplan.md` writes plan + inactive `ralph.json` | TEMPLATE |
-| `/autopilot` | OMC named stage profiles, Stop/HUD lifecycle, team execution config | `commands/autopilot.md` + keyword; no stage machine | TEMPLATE |
-| `/execute` | OMC verify/fix loop from plan to code | `commands/execute.md` one-step recipe | TEMPLATE |
+| `/ralplan` | OMC/OMX live iterative planning skills | CLI writes mode/plan.md stub/inactive `ralph.json`; slash interviews | SHIPPED (adapted, file-based); slash interviewer |
+| `/autopilot` | OMC named stage profiles, Stop/HUD lifecycle, team execution config | CLI `autopilot.json` + Stop after todo; no named stage profiles | SHIPPED (adapted, file-based); slash interviewer |
+| `/execute` | OMC verify/fix loop from plan to code | CLI next pending `plan.json` step + `progress.md`; slash implements | SHIPPED (adapted, file-based); slash interviewer |
 | Cancel / resume | OMC cancelomc; OMG `/cancel-ralph`, `/stop-continuation` | no cancel command; no pause marker | MISSING |
 
 ## 3. Skill-gate and Stop chain
@@ -123,8 +123,8 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 | CLI `team` tmux workers | `omc team N:codex|gemini|antigravity|grok|cursor|claude`; OMX team runtime | skipped; `omm team` writes `.omm/team/` files only | CANNOT / intentional |
 | Worktrees | OMC native team worktree mode; Muse already has `.muse/worktrees/` | skills/commands mention worktrees; no creator CLI | ADAPTED (docs only) |
 | `/ask` multi-provider | OMC/OMX live advisor (claude/codex/gemini/antigravity/grok/cursor) | `commands/ask.md` routes to a skill, not a provider CLI | TEMPLATE / ADAPTED |
-| CLI `ask` | live providers | in-process keyword overlap over 19 skill ids; writes `.omm/ask/last.json` | SHIPPED (adapted) |
-| Live HUD / statusline | OMC `omc hud` + Claude statusline preset; OMX HUD | `omm hud` text snapshot of `.omm/`; `/hud` still prints an in-session markdown table; no Muse statusline | CLI snapshot SHIPPED (adapted); slash TEMPLATE; live bar CANNOT |
+| CLI `ask` | live providers | scores 19 SKILL.md YAML descriptions + first heading + id; writes `.omm/ask/last.json` | SHIPPED (adapted, file-based) |
+| Live HUD / statusline | OMC `omc hud` + Claude statusline preset; OMX HUD | `omm hud` text snapshot of `.omm/` (including autopilot/interview/debug/trace/handoff when present); `/hud` still prints an in-session markdown table; no Muse statusline | CLI snapshot SHIPPED (adapted); slash TEMPLATE; live bar CANNOT |
 | Claude/Codex statusline injection | OMC/OMX | Muse plugin capabilities: skills, commands, hooks, mcpServers, reminders only. No statusline / apps | CANNOT |
 
 Muse spec: live remote ask transport is not ready. Even a faithful OMC-style provider advisor would be a companion-CLI feature, not a plugin capability.
@@ -134,16 +134,16 @@ Muse spec: live remote ask transport is not ready. Even a faithful OMC-style pro
 
 | Feature | OMM path | Status |
 |---------|----------|--------|
-| `/deep-interview` | `commands/deep-interview.md` to `.omm/requirements.md` | TEMPLATE |
-| `/ultragoal` | `commands/ultragoal.md` to `.omm/ultragoal.md` plus milestone-1 plan | TEMPLATE (no `omm ultragoal` CLI; OMC has `omc ultragoal create-goals`) |
-| `/handoff` | `commands/handoff.md` to `.omm/handoff.md` | TEMPLATE (OMG injects phases on `/handoff` via UserPromptSubmit) |
-| `/skillify` | `commands/skillify.md` draft SKILL.md | TEMPLATE (no OMC quality gates / auto-inject) |
+| `/deep-interview` | CLI `omm interview`/`deep-interview` → `.omm/interview/<stamp>.md` + `requirements.md` | SHIPPED (adapted, file-based); slash interviewer |
+| `/ultragoal` | CLI writes `.omm/ultragoal.md` + milestone-1 `plan.json` | SHIPPED (adapted, file-based); slash interviewer |
+| `/handoff` | CLI summarizes mode/plan/verify/team into `.omm/handoff.md` (no secrets) | SHIPPED (adapted, file-based); slash interviewer |
+| `/skillify` | CLI drafts `.omm/skillify/<slug>.md`; `--apply` only if portable slug | SHIPPED (adapted, file-based); slash interviewer |
 | `/wiki` | `commands/wiki.md` to `.omm/wiki/` | TEMPLATE + `omm wiki` SHIPPED (files only; no OMC session/compact wiki engine) |
 | `mission` | CLI only | SHIPPED `.omm/mission/queue.json` (no `commands/mission.md`) |
-| `/remember` | append `.omm/memory.md` | TEMPLATE (OMC project-memory hooks on SessionStart/PostToolUse/PreCompact) |
-| `/omm-trace` | write `.omm/trace/` | TEMPLATE |
-| `/debug` | `.omm/debug/` | TEMPLATE |
-| `/verify` | `.omm/verify.json` | TEMPLATE (no evidence engine, no Stop re-entry) |
+| `/remember` | CLI appends `memory.md` + `memory.jsonl`; refuses secrets | SHIPPED (adapted, file-based); slash interviewer |
+| `/omm-trace` | CLI static plugin outline under `.omm/trace/<slug>.md` | SHIPPED (adapted, file-based); slash interviewer |
+| `/debug` | CLI `.omm/debug/<stamp>.md` + mode.json debug | SHIPPED (adapted, file-based); slash interviewer |
+| `/verify` | CLI `verify.json` pending/pass/fail + `verify.md` (no Stop re-entry) | SHIPPED (adapted, file-based); slash interviewer |
 
 ## 6. Setup, doctor, compact, notifications
 
@@ -188,7 +188,7 @@ Skipped on purpose this release (CANNOT / intentional): live tmux team dashboard
 | doctor | manifest + counts + optional validate | SHIPPED |
 | hud | text snapshot of `.omm/` (not a TUI) | SHIPPED (adapted) |
 | team ask wait mission wiki update | file-based `.omm/` engines (not tmux / not remote) | SHIPPED (adapted) |
-| ralph autopilot execute ultragoal verify | unknown command | MISSING (slash only) |
+| ralplan interview ultragoal handoff skillify verify autopilot execute remember debug trace | file-based `.omm/` engines; slash remains in-session interviewer | SHIPPED (adapted, file-based) |
 
 ## 9. What Muse cannot host (so a full port is impossible)
 

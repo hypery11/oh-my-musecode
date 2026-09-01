@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "oh-my-musecode",
   "displayName": "Oh My Muse Code",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Productivity layer for Meta Muse Code: skills, slash-commands, hooks, and .omm session state.",
   "compat": {
     "source": "native",

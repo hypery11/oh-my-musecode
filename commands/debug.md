@@ -15,3 +15,6 @@ Debug symptom: **$ARGUMENTS**
 5. When resolved, note root cause and a regression check; suggest `/verify`.
 
 Muse-native tools only.
+
+## Notes
+CLI `omm debug [symptom...]` is live for state files (`.omm/debug/<stamp>.md` with symptom + empty Hypotheses section, `mode.json` debug). In-session Muse still follows this markdown for hypotheses and probes.

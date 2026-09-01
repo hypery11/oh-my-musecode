@@ -25,10 +25,10 @@ License: MIT. Copyright 2026 hypery11.
 | Ralph Stop loop (`decision: block`) | **Shipped** — `muse plugins hook test` confirms `should_block: true` |
 | `omm setup` / `omm doctor` | **Implemented** (local CLI, no deps) |
 | `omm hud` | **Implemented** — text snapshot of `.omm/` (not a live TUI) |
-| `omm team` `ask` `wait` `mission` `wiki` `update` | **Implemented** — file-based `.omm/` state (not tmux / not remote ask) |
+| `omm team` `ask` `wait` `mission` `wiki` `update` plus ralplan/interview/verify/autopilot/execute | **Implemented** — file-based `.omm/` state (not tmux / not remote ask) |
 | Slash-commands `/team` `/ask` `/hud` etc. | **Plugin-ready** (in-session templates, not a live tmux HUD) |
 
-There is **no** live tmux team dashboard, Claude statusline, or remote ask transport in this release. `omm team` / `omm ask` are file-based (roster + keyword skill router).
+There is **no** live tmux team dashboard, Claude statusline, or remote ask transport in this release. `omm team` / `omm ask` are file-based (roster + SKILL.md description router).
 
 Muse 1.0.1 plugin APIs are **experimental**. You must set `MUSE_EXPERIMENTAL_PLUGINS=1`.
 
@@ -71,7 +71,7 @@ From a git checkout:
 | Session state | Chat + transcripts | Durable `.omm/` plans, memory, traces, verify reports |
 | Hooks | You write them | 8 hooks: session, prompt keywords, skill/intent gate, Ralph/ulw/boulder/todo stop-chain, subagent log, compact flush, optional session-end webhook |
 | Multi-agent | `subagent_spawn` + worktrees | Same Muse tools, plus team roster/log conventions |
-| Companion CLI | `muse` | `omm setup` / `doctor` / `hud` plus file-based `team` `ask` `wait` `mission` `wiki` `update` |
+| Companion CLI | `muse` | `omm setup` / `doctor` / `hud` plus file-based team/ask/wiki and ralplan/interview/verify/autopilot engines |
 | Experimental flag | Needed for plugins | Documented; required on 1.0.1-R2006.1 |
 
 ## Features
@@ -87,13 +87,13 @@ Each skill is a Muse role recipe: when to activate, how to use `subagent_spawn` 
 | Command | Job |
 |---------|-----|
 | `/team` | Multi-skill mission + roster under `.omm/team/` |
-| `/autopilot` | Plan then execute with light supervision |
-| `/execute` | One plan step or concrete task |
+| `/autopilot` | Plan then execute (CLI autopilot.json; Stop after todo) |
+| `/execute` | One plan step or concrete task (CLI marks plan.json + progress.md) |
 | `/ralph` | Work-until-done loop with iteration budget |
-| `/ralplan` | Ralph-oriented planning interview |
-| `/deep-interview` | Requirements interview |
-| `/ask` | Route a question to the best skill (in-session; CLI keyword router is live) |
-| `/verify` | Evidence-gated completion |
+| `/ralplan` | Ralph-oriented planning (CLI writes plan stub + inactive ralph.json) |
+| `/deep-interview` | Requirements interview (CLI writes interview stamp + requirements.md) |
+| `/ask` | Route a question to the best skill (in-session; CLI scores SKILL.md descriptions) |
+| `/verify` | Evidence-gated completion (CLI pending/pass/fail state files) |
 | `/ultragoal` | North-star goal + first milestone |
 | `/handoff` | Next-session brief |
 | `/skillify` | Draft a new skill from a workflow |
@@ -113,7 +113,7 @@ Each skill is a Muse role recipe: when to activate, how to use `subagent_spawn` 
 | SessionStart | session-start | Optional system message listing `/commands` |
 | UserPromptSubmit | prompt-keywords | If prompt mentions ralph/ralplan/ultrathink/autopilot, write `.omm/mode.json` |
 | PreToolUse | skill-gate | Optional skill-gate + fail-open intent-gate (plan.json) for mutating tools |
-| Stop | stop-chain | Ralph, then ulw/ultrawork, boulder, then a capped todo nudge |
+| Stop | stop-chain | Ralph, then ulw/ultrawork, boulder, capped todo nudge, then autopilot |
 | SubagentStart | subagent-start | Append `.omm/team/log.jsonl` |
 | SubagentStop | subagent-stop | Same log |
 | PreCompact | pre-compact | Write `.omm/compact.json` and append `.omm/memory.md` |
@@ -133,11 +133,12 @@ Workspace state lives under `.omm/` (see `.omm/README.md`). Plugin source is thi
 - `omm doctor` — locate `muse`, check this tree, run validate if found
 - `omm hud` — text snapshot of `.omm/` (not a live TUI)
 - `omm team [mission...]` — init/list `.omm/team/` (not tmux)
-- `omm ask [question...]` — pick a bundled skill by keyword overlap (no remote model)
+- `omm ask [question...]` — route to a bundled skill via SKILL.md description + id (no remote model)
 - `omm wait [seconds]` — poll `.omm/team/log.jsonl` mtime
 - `omm mission [text...]` — queue in `.omm/mission/queue.json`
 - `omm wiki list|show|write` — files under `.omm/wiki/`
 - `omm update` — print `muse plugins update/approve`; optional registry check
+- `omm ralplan` `interview` `ultragoal` `handoff` `skillify` `verify` `autopilot` `execute` `remember` `debug` `trace` — file-based `.omm/` engines (slash-commands still interview in-session)
 - `-h` / `--help` and `-V`
 
 ## Layout
@@ -146,7 +147,7 @@ Workspace state lives under `.omm/` (see `.omm/README.md`). Plugin source is thi
     skills/<id>/SKILL.md
     commands/<id>.md
     hooks/*.py
-    bin/omm.mjs
+    bin/omm.mjs + bin/lib/
     .omm/                 (runtime; mostly gitignored)
 
 ## 繁體中文（摘要）
@@ -155,7 +156,7 @@ Workspace state lives under `.omm/` (see `.omm/README.md`). Plugin source is thi
 
 Muse 1.0.1 的 plugin API 仍是實驗功能，請設定 `MUSE_EXPERIMENTAL_PLUGINS=1`，再用 `muse plugins install` / `marketplace` / `approve`。
 
-本版 **沒有** 即時 tmux 團隊儀表板或遠端 ask 通道。`omm hud` 是文字快照；`omm team/ask/wait/mission/wiki/update` 是檔案型 CLI。完整中文說明見 [README.zh-TW.md](README.zh-TW.md)。
+本版 **沒有** 即時 tmux 團隊儀表板或遠端 ask 通道。`omm hud` 是文字快照；`omm team/ask/wait/mission/wiki/update` 以及 ralplan/interview/verify/autopilot 等是檔案型 CLI。完整中文說明見 [README.zh-TW.md](README.zh-TW.md)。
 
 ## Contributing
 

@@ -129,7 +129,60 @@ def main() -> None:
         if "Ralph" not in str(out.get("reason")):
             fail(f"ralph should win over todo, got {out}")
 
-        print("ok  stop-chain ralph/ulw/boulder/todo")
+        # autopilot after todo
+        tmp7 = tmp / "auto"
+        tmp7.mkdir()
+        write_json(tmp7 / ".omm" / "autopilot.json", {"active": True, "step": 0, "max": 3, "goal": "land"})
+        out = run_hook(tmp7)
+        if out.get("decision") != "block" or "Autopilot" not in str(out.get("reason")):
+            fail(f"autopilot should block, got {out}")
+        if "Autopilot loop 1/3" not in str(out.get("reason")):
+            fail(f"autopilot reason {out.get('reason')!r}")
+        ap = json.loads((tmp7 / ".omm" / "autopilot.json").read_text(encoding="utf-8"))
+        if ap.get("step") != 1:
+            fail(f"autopilot step {ap.get('step')}")
+
+        # DONE deactivates autopilot
+        tmp8 = tmp / "auto-done"
+        tmp8.mkdir()
+        write_json(tmp8 / ".omm" / "autopilot.json", {"active": True, "step": 1, "max": 5})
+        out = run_hook(tmp8, {"last_assistant_message": "shipped <promise>DONE</promise>"})
+        if out != {}:
+            fail(f"autopilot DONE should allow, got {out}")
+        ap = json.loads((tmp8 / ".omm" / "autopilot.json").read_text(encoding="utf-8"))
+        if ap.get("active") is not False:
+            fail("autopilot should deactivate on DONE")
+
+        # max budget allows
+        tmp9 = tmp / "auto-max"
+        tmp9.mkdir()
+        write_json(tmp9 / ".omm" / "autopilot.json", {"active": True, "step": 2, "max": 2})
+        out = run_hook(tmp9)
+        if out != {}:
+            fail(f"autopilot max should allow, got {out}")
+
+        # ralph wins over autopilot
+        tmp10 = tmp / "ralph-auto"
+        tmp10.mkdir()
+        write_json(tmp10 / ".omm" / "ralph.json", {"active": True, "iterations": 0, "max": 2})
+        write_json(tmp10 / ".omm" / "autopilot.json", {"active": True, "step": 0, "max": 4})
+        out = run_hook(tmp10)
+        if "Ralph" not in str(out.get("reason")):
+            fail(f"ralph should win over autopilot, got {out}")
+
+        # todo wins over autopilot (order: todo then autopilot)
+        tmp11 = tmp / "todo-auto"
+        tmp11.mkdir()
+        write_json(
+            tmp11 / ".omm" / "todo.json",
+            {"items": [{"id": "a", "text": "land", "status": "pending"}], "nudge": 0, "nudge_cap": 1},
+        )
+        write_json(tmp11 / ".omm" / "autopilot.json", {"active": True, "step": 0, "max": 4})
+        out = run_hook(tmp11)
+        if "Todo" not in str(out.get("reason")):
+            fail(f"todo should win over autopilot, got {out}")
+
+        print("ok  stop-chain ralph/ulw/boulder/todo/autopilot")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

@@ -36,7 +36,7 @@ After any manifest or path change, run Muse plugins validate with experimental p
 3. Persist decisions, plans, traces, and verify evidence under .omm/.
 4. Use subagent_spawn with a bounded prompt; one owner per file cluster.
 5. Hook scripts: read stdin JSON, audit .omm/hooks.jsonl if writable, print {} or a real decision. Never emit a bare permissionDecision=allow.
-6. CLI verbs `setup` `doctor` `hud` `team` `ask` `wait` `mission` `wiki` `update` are live file-based engines. `omm hud` is a text snapshot, not a live TUI. Do not invent a tmux dashboard or remote ask transport.
+6. CLI verbs `setup` `doctor` `hud` `team` `ask` `wait` `mission` `wiki` `update` `ralplan` `interview` `ultragoal` `handoff` `skillify` `verify` `autopilot` `execute` `remember` `debug` `trace` are live file-based engines. `omm hud` is a text snapshot, not a live TUI. `omm ask` scores SKILL.md descriptions (no remote model). Do not invent a tmux dashboard or remote ask transport.
 
 ## Layout
 
@@ -44,4 +44,4 @@ After any manifest or path change, run Muse plugins validate with experimental p
 - skills/<id>/SKILL.md (19 roles)
 - commands/<id>.md (19 slash-commands)
 - hooks/*.py (8 unique sources plus _omm.py helper)
-- bin/omm.mjs (companion CLI)
+- bin/omm.mjs (companion CLI) plus bin/lib helpers

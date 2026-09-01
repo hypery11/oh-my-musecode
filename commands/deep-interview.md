@@ -15,3 +15,6 @@ Deep interview about: **$ARGUMENTS**
 5. Offer next command: `/ultragoal`, `/ralplan`, or `/team`.
 
 Do not start coding until the brief is accepted.
+
+## Notes
+CLI `omm interview` and `omm deep-interview` are aliases and live for state files (`.omm/interview/<utc-stamp>.md` + `.omm/requirements.md`). In-session Muse still follows this markdown for the Socratic questions and brief.

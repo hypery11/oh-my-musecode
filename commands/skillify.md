@@ -15,3 +15,6 @@ Skillify workflow: **$ARGUMENTS**
 5. Save working notes under `.omm/skillify/<id>.md`.
 
 Remind the user to run Muse plugins validate after manifest edits.
+
+## Notes
+CLI `omm skillify [workflow-name...]` is live: drafts `.omm/skillify/<slug>.md` and prints a SKILL.md skeleton. It does **not** write plugin `skills/` unless `--apply` and the slug is portable `[a-z0-9-]+`. In-session Muse still follows this markdown for interview questions.

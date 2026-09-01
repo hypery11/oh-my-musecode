@@ -9,7 +9,7 @@ Confirmed Muse hook stdout (PreToolUse hook test, same JSON decoder):
 Live Stop extra stdin fields (stop_reason, last_assistant_message) are
 UNKNOWN on 1.0.1; we read them if present and ignore if absent.
 
-Order: ralph, then ulw/ultrawork, then boulder, then a capped todo nudge.
+Order: ralph, then ulw/ultrawork, then boulder, then a capped todo nudge, then autopilot.
 """
 from __future__ import annotations
 
@@ -139,6 +139,38 @@ def handle_todo(event: dict, directory: Path) -> dict | None:
     return {"decision": "block", "reason": reason, "systemMessage": reason}
 
 
+
+def handle_autopilot(event: dict, directory: Path) -> dict | None:
+    """Ralph-style loop on .omm/autopilot.json using step (not iterations)."""
+    path = directory / "autopilot.json"
+    state = omm.load_json(path)
+    if not isinstance(state, dict) or not state.get("active"):
+        return None
+    step = _int(state.get("step"), 0)
+    maximum = _int(state.get("max") or state.get("maxSteps"), 0)
+    goal = str(state.get("goal") or "")
+    text = last_text(event)
+    done = bool(text and DONE_RE.search(text))
+    if done or (maximum > 0 and step >= maximum):
+        state["active"] = False
+        state["status"] = "done" if done else "budget"
+        state["step"] = step
+        omm.write_json(path, state)
+        return None
+    if maximum <= 0:
+        return None
+    state["step"] = step + 1
+    state["active"] = True
+    omm.write_json(path, state)
+    nxt = state["step"]
+    reason = (
+        f"Autopilot loop {nxt}/{maximum} still active"
+        + (f" for: {goal}" if goal else "")
+        + ". Continue. End with <promise>DONE</promise> when the goal is met."
+    )
+    return {"decision": "block", "reason": reason, "systemMessage": reason}
+
+
 def main() -> None:
     event = omm.unwrap_event(omm.read_stdin_json())
     directory = omm.omm_dir(event)
@@ -177,6 +209,11 @@ def main() -> None:
             return
 
     out = handle_todo(event, directory)
+    if out is not None:
+        omm.emit(out)
+        return
+
+    out = handle_autopilot(event, directory)
     if out is not None:
         omm.emit(out)
         return

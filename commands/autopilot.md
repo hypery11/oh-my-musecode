@@ -15,3 +15,6 @@ Autopilot goal: **$ARGUMENTS**
 5. End with `verifier` and write `.omm/verify.json`.
 
 Keep durable state under `.omm/`. Use `subagent_spawn` sparingly for parallel research only.
+
+## Notes
+CLI `omm autopilot [goal...]` is live for state files (`.omm/mode.json` autopilot, `plan.json` if missing, `autopilot.json` `{active:true,step:0,max:20}`). Stop-chain honors autopilot **after** ralph/ulw/boulder/todo. In-session Muse still follows this markdown for walking steps and code.

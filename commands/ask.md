@@ -13,4 +13,4 @@ Question: **$ARGUMENTS**
 3. Answer with evidence and paths. If research is large, `subagent_spawn` an `explore` worker.
 4. Optionally append Q/A to `.omm/ask-log.md`.
 
-Note: CLI `omm ask` is live as an in-process keyword router over the 19 bundled skills (writes `.omm/ask/last.json`, no remote model). This slash-command still answers in-session.
+Note: CLI `omm ask` is live as the 19-role router: it scores `skills/*/SKILL.md` YAML `description` + first heading + id (writes `.omm/ask/last.json` `{query,skill,score,reason,alternatives}`, no remote model). This slash-command still answers in-session.

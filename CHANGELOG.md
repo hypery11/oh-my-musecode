@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.3.0 — 2026-09-01 (Taipei)
+
+### Added
+- File-based CLI engines: `omm ralplan`, `interview`/`deep-interview`, `ultragoal`, `handoff`, `skillify`, `verify`, `autopilot`, `execute`, `remember`, `debug`, `trace`
+- `omm ask` scores bundled SKILL.md YAML descriptions (19-role router, no remote model)
+- Stop chain honors `.omm/autopilot.json` after ralph/ulw/boulder/todo
+
+### Notes
+- Slash-commands remain in-session interviewers; CLI writes `.omm/` state files
+- Still not 1:1 with peer runtimes (no tmux, no remote ask)
+
 ## 0.2.0 — 2026-09-01 (Taipei)
 
 ### Added

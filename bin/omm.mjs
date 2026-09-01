@@ -1,14 +1,45 @@
 #!/usr/bin/env node
 /**
  * Oh My Muse Code companion CLI (no runtime dependencies).
- * Real work: setup, doctor, hud snapshot, plus file-based team/ask/wait/mission/wiki/update.
+ * File-based engines for .omm/ state; slash-commands still run in-session.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  countNonemptyLines,
+  ensureDir,
+  lastNonemptyLine,
+  readFileCapped,
+  readJson,
+  readJsonCapped,
+  resolveOmmDir,
+  safeStr,
+  sleepMs,
+  writeJsonPretty,
+} from "./lib/fs.mjs";
+import { loadSkillCatalog, pickSkill } from "./lib/skills.mjs";
+import {
+  cmdAutopilot,
+  cmdDebug,
+  cmdExecute,
+  cmdHandoff,
+  cmdInterview,
+  cmdRalplan,
+  cmdRemember,
+  cmdSkillify,
+  cmdTrace,
+  cmdUltragoal,
+  cmdVerify,
+  extraHudLines,
+  summarizeMemory,
+  summarizePlan,
+  summarizeTeam,
+  summarizeVerify,
+} from "./lib/engines.mjs";
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
 
@@ -22,12 +53,27 @@ Usage:
   omm doctor             Check muse binary + this plugin tree
   omm hud                Text snapshot of .omm/ (not a live TUI)
   omm team [mission...]  Init .omm/team files; no args lists roster + log
-  omm ask [question...]  Pick a bundled skill by keyword overlap
+  omm ask [question...]  Route to a bundled skill (SKILL.md description + id)
   omm wait [seconds]     Poll .omm/team/log.jsonl mtime (default 5)
   omm mission [text...]  Queue items in .omm/mission/queue.json
   omm wiki list|show|write
                          File wiki under .omm/wiki/
   omm update             Print muse plugins update/approve; optional registry check
+  omm ralplan [topic...] Ralph-oriented plan stub + inactive ralph.json
+  omm interview [subject...]
+  omm deep-interview [subject...]
+                         Write .omm/interview/<utc-stamp>.md + requirements.md
+  omm ultragoal [goal...] mode.json + ultragoal.md + milestone-1 plan.json
+  omm handoff [focus...] Summarize mode/plan/verify/team into handoff.md
+  omm skillify [workflow-name...] [--apply]
+                         Draft .omm/skillify/<slug>.md; --apply writes skills/ if portable
+  omm verify [claim...]  Write pending verify.json; pass|fail [note]; no args prints
+  omm autopilot [goal...] mode.json + autopilot.json (Stop chain after todo)
+  omm execute [step-or-task...]
+                         Next pending plan.json step in-progress; done marks it done
+  omm remember [note...] Append memory.md + memory.jsonl (refuses secrets)
+  omm debug [symptom...] .omm/debug/<stamp>.md + mode.json debug
+  omm trace [target...]  Static outline of this plugin's hooks/commands
   omm -h, --help         Show this help
   omm -V, --version      Print version
 
@@ -157,126 +203,6 @@ function cmdDoctor() {
   }
 }
 
-const SECRET_KEY_RE = /token|secret|password|api[_-]?key|authorization|credential|passwd|bearer/i;
-const MAX_JSON_BYTES = 64 * 1024;
-
-function resolveOmmDir() {
-  const override = (process.env.OMM_DIR || "").trim();
-  if (override) return resolve(override);
-  return join(process.cwd(), ".omm");
-}
-
-function truncate(s, n = 96) {
-  const t = String(s).replace(/\s+/g, " ").trim();
-  if (t.length <= n) return t;
-  return t.slice(0, Math.max(0, n - 1)) + "\u2026";
-}
-
-function readFileCapped(path, maxBytes = MAX_JSON_BYTES) {
-  try {
-    const st = statSync(path);
-    if (!st.isFile()) return null;
-    if (st.size > maxBytes) return { skipped: true, size: st.size };
-    return { text: readFileSync(path, "utf8"), size: st.size };
-  } catch {
-    return null;
-  }
-}
-
-function readJsonCapped(path) {
-  const got = readFileCapped(path);
-  if (!got) return null;
-  if (got.skipped) return { skipped: true };
-  try {
-    return { value: JSON.parse(got.text) };
-  } catch {
-    return null;
-  }
-}
-
-function countNonemptyLines(path) {
-  const got = readFileCapped(path, 1024 * 1024);
-  if (!got) return null;
-  if (got.skipped) return "large";
-  let n = 0;
-  for (const line of got.text.split(/\r?\n/)) {
-    if (line.trim()) n += 1;
-  }
-  return n;
-}
-
-function summarizePlan(plan) {
-  if (Array.isArray(plan)) return plan.length + " steps";
-  if (!plan || typeof plan !== "object") return truncate(plan, 80);
-  const steps = plan.steps || plan.items || plan.todos;
-  const n = Array.isArray(steps) ? steps.length : null;
-  const title = plan.title || plan.name || plan.summary || plan.goal || "";
-  const bits = [];
-  if (title) bits.push(truncate(title, 72));
-  if (n != null) bits.push(n + " steps");
-  if (plan.status) bits.push(String(plan.status));
-  return bits.join(", ") || "present";
-}
-
-function summarizeVerify(v) {
-  if (Array.isArray(v)) return v.length + " results";
-  if (!v || typeof v !== "object") return truncate(v, 80);
-  const bits = [];
-  if (v.status != null) bits.push(truncate(v.status, 40));
-  if (typeof v.ok === "boolean") bits.push(v.ok ? "ok" : "not-ok");
-  if (typeof v.passed === "boolean") bits.push(v.passed ? "passed" : "failed");
-  if (v.summary) bits.push(truncate(v.summary, 72));
-  return bits.join(", ") || "present";
-}
-
-function summarizeTeam(teamDir) {
-  let files = [];
-  try {
-    files = readdirSync(teamDir).filter((name) => {
-      try { return statSync(join(teamDir, name)).isFile(); } catch { return false; }
-    });
-  } catch { files = []; }
-  let mission = "";
-  const md = join(teamDir, "mission.md");
-  const mj = join(teamDir, "mission.json");
-  if (existsSync(md)) {
-    const got = readFileCapped(md, 8192);
-    if (got && got.text) {
-      const line = got.text.split(/\r?\n/).find((l) => l.trim()) || "";
-      mission = truncate(line.replace(/^#+\s*/, ""), 72);
-    }
-  } else if (existsSync(mj)) {
-    const got = readJsonCapped(mj);
-    if (got && got.value && typeof got.value === "object") {
-      const name = got.value.name || got.value.mission || got.value.title;
-      if (name) mission = truncate(name, 72);
-    }
-  }
-  const bits = [files.length + " files"];
-  if (mission) bits.push("mission: " + mission);
-  return bits.join(", ");
-}
-
-function summarizeMemory(dir) {
-  const bits = [];
-  const pairs = [["memory.md", join(dir, "memory.md")], ["memory.jsonl", join(dir, "memory.jsonl")], ["notes.md", join(dir, "notes.md")]];
-  for (const [label, p] of pairs) {
-    if (!existsSync(p)) continue;
-    const n = countNonemptyLines(p);
-    if (n === "large") bits.push(label + " large");
-    else if (n != null) bits.push(label + " " + n + " lines");
-  }
-  if (!bits.length) return "";
-  return "memory: " + bits.join(", ");
-}
-
-function safeStr(key, val, n = 80) {
-  if (SECRET_KEY_RE.test(String(key))) return "";
-  if (val == null) return "";
-  if (typeof val === "object") return "";
-  return truncate(val, n);
-}
-
 function cmdHud() {
   const dir = resolveOmmDir();
   if (!existsSync(dir) || !statSync(dir).isDirectory()) {
@@ -322,40 +248,9 @@ function cmdHud() {
     if (n === "large") lines.push("hooks.jsonl: large (not counted)");
     else if (n != null) lines.push("hooks.jsonl: " + n + " lines");
   }
+  for (const extra of extraHudLines(dir)) lines.push(extra);
   print(lines.join("\n"));
   return 0;
-}
-
-function ensureDir(p) {
-  mkdirSync(p, { recursive: true });
-  return p;
-}
-
-function writeJsonPretty(path, obj) {
-  ensureDir(dirname(path));
-  writeFileSync(path, JSON.stringify(obj, null, 2) + "\n", "utf8");
-}
-
-function readJson(path, fallback) {
-  if (!existsSync(path)) return fallback;
-  try {
-    return JSON.parse(readFileSync(path, "utf8"));
-  } catch {
-    return fallback;
-  }
-}
-
-function sleepMs(ms) {
-  if (ms <= 0) return;
-  const sab = new SharedArrayBuffer(4);
-  Atomics.wait(new Int32Array(sab), 0, 0, ms);
-}
-
-function lastNonemptyLine(path) {
-  const got = readFileCapped(path, 1024 * 1024);
-  if (!got || got.skipped || !got.text) return "";
-  const lines = got.text.split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => l.trim());
-  return lines.length ? lines[lines.length - 1] : "";
 }
 
 function cmdTeam(args) {
@@ -382,7 +277,7 @@ function cmdTeam(args) {
   const roster = readJson(join(dir, "roster.json"), null);
   if (roster && typeof roster === "object") {
     print("roster: " + JSON.stringify(roster.roles || roster));
-    if (roster.mission) print("mission: " + truncate(roster.mission, 120));
+    if (roster.mission) print("mission: " + (roster.mission.length > 120 ? roster.mission.slice(0, 119) + "\u2026" : roster.mission));
   } else {
     print("roster: (none — run omm team <mission>)");
   }
@@ -403,77 +298,24 @@ function cmdTeam(args) {
   return 0;
 }
 
-const SKILL_KEYWORDS = {
-  architect: ["architect", "architecture", "system", "module", "layer", "adr", "structure"],
-  planner: ["plan", "planner", "roadmap", "steps", "milestone", "schedule", "breakdown", "interview"],
-  executor: ["executor", "execute", "implement", "land", "apply", "patch", "code"],
-  explore: ["explore", "search", "find", "locate", "codebase", "where", "lookup"],
-  analyst: ["analyst", "analyze", "analysis", "data", "metrics", "compare", "trend"],
-  designer: ["designer", "design", "ui", "ux", "layout", "visual", "css"],
-  debugger: ["debugger", "debug", "bug", "crash", "stacktrace", "exception", "error"],
-  tracer: ["tracer", "trace", "flow", "callgraph", "path"],
-  critic: ["critic", "critique", "tradeoff", "objection", "review-design"],
-  "code-reviewer": ["review", "reviewer", "pr", "diff", "comment", "nit"],
-  "security-reviewer": ["security", "vuln", "xss", "injection", "cve", "auth", "secret"],
-  "code-simplifier": ["simplify", "simplifier", "refactor", "cleanup", "dead"],
-  "test-engineer": ["test", "unit", "coverage", "pytest", "jest", "spec"],
-  "qa-tester": ["qa", "regression", "acceptance", "smoke", "e2e"],
-  verifier: ["verifier", "verify", "evidence", "acceptance-criteria", "done-definition"],
-  scientist: ["scientist", "experiment", "hypothesis", "ablation", "benchmark"],
-  "document-specialist": ["docs", "documentation", "readme", "changelog", "api-doc"],
-  writer: ["writer", "prose", "copy", "wording", "blog", "narrative"],
-  "git-master": ["git", "commit", "branch", "rebase", "merge", "blame", "cherry"],
-};
-
-function scoreSkill(question) {
-  const q = question.toLowerCase();
-  const tokens = new Set(q.split(/[^a-z0-9+.-]+/).filter(Boolean));
-  let bestId = "explore";
-  let bestScore = 0;
-  let bestHits = [];
-  for (const [id, kws] of Object.entries(SKILL_KEYWORDS)) {
-    const hits = [];
-    let score = 0;
-    for (const kw of kws) {
-      if (q.includes(kw) || tokens.has(kw)) {
-        score += kw.includes(" ") || kw.length > 6 ? 2 : 1;
-        hits.push(kw);
-      }
-    }
-    if (tokens.has(id) || q.includes(id)) {
-      score += 3;
-      hits.push(id);
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestId = id;
-      bestHits = hits;
-    }
-  }
-  return { id: bestId, score: bestScore, hits: bestHits };
-}
-
 function cmdAsk(args) {
   const question = args.join(" ").trim();
   if (!question) {
     print("usage: omm ask [question...]");
     return 1;
   }
-  const picked = scoreSkill(question);
-  const reason =
-    picked.score > 0
-      ? "keyword overlap with " + picked.hits.slice(0, 6).join(", ")
-      : "default explore (no keyword overlap)";
+  const catalog = loadSkillCatalog(join(ROOT, "skills"));
+  const picked = pickSkill(question, catalog);
   const rec = {
-    ts: new Date().toISOString(),
-    question,
+    query: question,
     skill: picked.id,
     score: picked.score,
-    reason,
+    reason: picked.reason,
+    alternatives: picked.alternatives,
   };
   writeJsonPretty(join(resolveOmmDir(), "ask", "last.json"), rec);
   print(picked.id);
-  print(reason);
+  print(picked.reason);
   return 0;
 }
 
@@ -522,6 +364,7 @@ function cmdWait(args) {
   print("timeout");
   return 1;
 }
+
 function loadQueue(path) {
   const data = readJson(path, []);
   return Array.isArray(data) ? data : [];
@@ -570,6 +413,7 @@ function cmdMission(args) {
   print("queued " + rec.id + ": " + text);
   return 0;
 }
+
 function wikiFileName(raw) {
   const base = String(raw || "page").replace(/\\/g, "/").split("/").pop();
   let slug = String(base).replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -621,6 +465,7 @@ function cmdWiki(args) {
   print("usage: omm wiki [list|show <page>|write <page>]");
   return 1;
 }
+
 function cmdUpdate() {
   const path = pluginPathHint();
   print("# Oh My Muse Code — refresh hashes / version");
@@ -667,8 +512,7 @@ function main(argv) {
       cmdDoctor();
       return 0;
     case "hud":
-      cmdHud();
-      return 0;
+      return cmdHud();
     case "team":
       return cmdTeam(args.slice(1));
     case "ask":
@@ -681,6 +525,29 @@ function main(argv) {
       return cmdWiki(args.slice(1));
     case "update":
       return cmdUpdate();
+    case "ralplan":
+      return cmdRalplan(args.slice(1));
+    case "interview":
+    case "deep-interview":
+      return cmdInterview(args.slice(1));
+    case "ultragoal":
+      return cmdUltragoal(args.slice(1));
+    case "handoff":
+      return cmdHandoff(args.slice(1));
+    case "skillify":
+      return cmdSkillify(args.slice(1), ROOT);
+    case "verify":
+      return cmdVerify(args.slice(1));
+    case "autopilot":
+      return cmdAutopilot(args.slice(1));
+    case "execute":
+      return cmdExecute(args.slice(1));
+    case "remember":
+      return cmdRemember(args.slice(1));
+    case "debug":
+      return cmdDebug(args.slice(1));
+    case "trace":
+      return cmdTrace(args.slice(1));
     default:
       print(`unknown command: ${cmd}`);
       print("try: omm --help");
