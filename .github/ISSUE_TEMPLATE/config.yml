@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Muse Code docs
+    url: https://dev.meta.ai/docs/muse-code/
+    about: Official Muse Code documentation (login-gated).

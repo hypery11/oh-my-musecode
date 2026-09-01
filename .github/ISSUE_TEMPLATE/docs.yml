@@ -1,0 +1,37 @@
+name: Docs
+description: README, AGENTS.md, or community-doc fix
+title: "[docs] "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: English is primary. Keep README.zh-TW.md in sync for user-facing install/status text.
+  - type: dropdown
+    id: which
+    attributes:
+      label: Which doc
+      options:
+        - README.md
+        - README.zh-TW.md
+        - AGENTS.md
+        - CONTRIBUTING.md
+        - SUPPORT.md
+        - SECURITY.md
+        - CHANGELOG.md
+        - ROADMAP.md
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording
+      description: Optional. Keep claims honest (plugin-ready vs CLI stubs).
+    validations:
+      required: false

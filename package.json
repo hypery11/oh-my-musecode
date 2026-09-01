@@ -1,0 +1,44 @@
+{
+  "name": "oh-my-musecode",
+  "version": "0.1.0",
+  "description": "The missing productivity layer for Meta Muse Code \u2014 skills, slash-commands, hooks, and .omm session state.",
+  "license": "MIT",
+  "bin": {
+    "omm": "./bin/omm.mjs"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "commands",
+    "hooks",
+    ".muse-plugin",
+    "README.md",
+    "README.zh-TW.md",
+    "LICENSE",
+    "AGENTS.md"
+  ],
+  "keywords": [
+    "muse",
+    "muse-code",
+    "plugin",
+    "oh-my-musecode",
+    "productivity"
+  ],
+  "author": {
+    "name": "hypery11",
+    "url": "https://github.com/hypery11",
+    "email": "4160414+hypery11@users.noreply.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hypery11/oh-my-musecode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hypery11/oh-my-musecode/issues"
+  },
+  "homepage": "https://github.com/hypery11/oh-my-musecode#readme"
+}

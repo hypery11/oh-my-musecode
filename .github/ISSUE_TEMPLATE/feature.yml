@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a skill, command, hook, or CLI change
+title: "[feat] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        OMC/OMX inspiration is welcome. Do not paste their skill text.
+        Muse 1.0.1 has no `agents` capability — roles are skills + `subagent_spawn`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options: [skill, command, hook, omm CLI, docs, other]
+    validations:
+      required: true
+  - type: dropdown
+    id: wave
+    attributes:
+      label: Suggested wave
+      options: [wave-2 (CLI team/ask/hud), wave-3 (wiki/mission/notifications), later]

@@ -1,0 +1,11 @@
+node_modules/
+.omm/*
+!.omm/.gitkeep
+!.omm/README.md
+*.pyc
+__pycache__/
+.muse/
+*.egg-info/
+dist/
+.env
+.DS_Store

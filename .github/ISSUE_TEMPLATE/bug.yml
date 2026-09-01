@@ -1,0 +1,51 @@
+name: Bug report
+description: Something does not work in oh-my-musecode
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Hooks run local Python against your workspace. Do not paste secrets, `auth.json`, or tokens.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      placeholder: What you did, what you expected, what you got.
+    validations:
+      required: true
+  - type: input
+    id: muse-version
+    attributes:
+      label: Muse Code version
+      placeholder: "Muse Code 1.0.1 (1.0.1-R2006.1)"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: Linux x86_64 / macOS arm64 / ...
+    validations:
+      required: true
+  - type: input
+    id: omm-version
+    attributes:
+      label: oh-my-musecode version
+      placeholder: "0.1.0"
+  - type: dropdown
+    id: experimental
+    attributes:
+      label: MUSE_EXPERIMENTAL_PLUGINS
+      options: ["1 / true", "unset"]
+    validations:
+      required: true
+  - type: textarea
+    id: validate
+    attributes:
+      label: muse plugins validate --json (redact paths if needed)
+      render: json
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra
+      placeholder: plugin list/inspect, hook stderr, reproduction steps
