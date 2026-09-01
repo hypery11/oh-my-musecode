@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+## 0.1.1 — 2026-09-01 (Taipei)
+
 ### Changed
 - `omm hud` is a real text snapshot of `.omm/` (not a live TUI); keyword hook accepts wrapper `{event, stdin}` fixtures
+
+### Notes
+- npm package oh-my-musecode 0.1.1 and GitHub release v0.1.1
 
 ## 0.1.0 — 2026-09-01
 

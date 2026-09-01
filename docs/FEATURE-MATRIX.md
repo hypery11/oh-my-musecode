@@ -1,3 +1,5 @@
+> v0.1.1 ships only hud snapshot + keyword wrapper, not a full port.
+
 # Oh My Muse Code v0.1.0 — feature completeness matrix
 
 Compared against public surfaces of:

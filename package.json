@@ -1,6 +1,6 @@
 {
   "name": "oh-my-musecode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The missing productivity layer for Meta Muse Code \u2014 skills, slash-commands, hooks, and .omm session state.",
   "license": "MIT",
   "bin": {
