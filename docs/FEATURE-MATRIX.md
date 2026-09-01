@@ -129,3 +129,80 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 
 Muse spec: live remote ask transport is not ready. Even a faithful OMC-style provider advisor would be a companion-CLI feature, not a plugin capability.
 
+
+## 5. Interview, goals, handoff, skillify, wiki, mission
+
+| Feature | OMM path | Status |
+|---------|----------|--------|
+| `/deep-interview` | `commands/deep-interview.md` to `.omm/requirements.md` | TEMPLATE |
+| `/ultragoal` | `commands/ultragoal.md` to `.omm/ultragoal.md` plus milestone-1 plan | TEMPLATE (no `omm ultragoal` CLI; OMC has `omc ultragoal create-goals`) |
+| `/handoff` | `commands/handoff.md` to `.omm/handoff.md` | TEMPLATE (OMG injects phases on `/handoff` via UserPromptSubmit) |
+| `/skillify` | `commands/skillify.md` draft SKILL.md | TEMPLATE (no OMC quality gates / auto-inject) |
+| `/wiki` | `commands/wiki.md` to `.omm/wiki/` | TEMPLATE; `omm wiki` STUB; no OMC wiki session/compact engines |
+| `mission` | CLI only | STUB (no `commands/mission.md`; OMC missions/, OMX mission queue) |
+| `/remember` | append `.omm/memory.md` | TEMPLATE (OMC project-memory hooks on SessionStart/PostToolUse/PreCompact) |
+| `/omm-trace` | write `.omm/trace/` | TEMPLATE |
+| `/debug` | `.omm/debug/` | TEMPLATE |
+| `/verify` | `.omm/verify.json` | TEMPLATE (no evidence engine, no Stop re-entry) |
+
+## 6. Setup, doctor, compact, notifications
+
+| Feature | OMM | Status |
+|---------|-----|--------|
+| `omm setup` | prints muse plugins install/approve with experimental flag; does not mutate Muse home | SHIPPED |
+| `/omm-setup` | same text via the model | TEMPLATE |
+| `omm doctor` | tree counts 19/19/8, parses manifest, optional muse plugins validate --json | SHIPPED |
+| `/omm-doctor` | model-run checklist | TEMPLATE |
+| omm update | stub | STUB |
+| PreCompact | pre_compact.py emits empty JSON | STUB |
+| Notifications | no hook | MISSING |
+| omm wait | stub | STUB |
+
+## 7. Engines OMM does not have
+
+| Feature | Who ships it | Muse 1.0.1 feasible? | OMM status |
+|---------|--------------|----------------------|------------|
+| Boulder / todo continuation | OMG + OMC | Yes via Stop + files | MISSING |
+| Intent-gate banners | OMG + OMC | Yes via UserPromptSubmit | MISSING |
+| Hashline LINE#ID edits | OMG only | Partial without Read rewrite | MISSING (likely CANNOT faithful) |
+| LSP post-tool + Stop | OMG | Yes via mcpServers + PostToolUse | MISSING |
+| ast-grep MCP | OMG | Yes | MISSING |
+| Bundled MCP | OMC OMX OMG | Yes | MISSING (mcpServers empty) |
+| tmux multi-CLI team | OMC/OMX | Yes as companion CLI | STUB |
+| Haiku / Opus routing | OMC | CANNOT: Muse Spark; agents capability rejected | CANNOT |
+| obra/superpowers vendor | OMG 14 skills | Yes as extra skills | MISSING (deliberate: not a fork) |
+| /loop wrap | OMC wraps Claude /goal; Muse has builtin /loop | plugin id loop reserved | CANNOT (id) / MISSING (wrapper) |
+| Wrap Muse builtins plan/grill/taste | OMC/OMX wrap host builtins | prose only | MISSING (no wrapper commands) |
+| Autoresearch visual-verdict deepinit graph release self-improve PSM | OMC | Yes | MISSING |
+| Named autopilot workflow profiles | OMC v5 | Yes | MISSING |
+| Skill auto-inject / learner | OMC | Partial UserPromptSubmit | MISSING |
+| OpenClaw / Discord gateway | OMC/OMX | Companion CLI | MISSING |
+
+## 8. CLI surface (bin/omm.mjs)
+
+| Verb | Behavior | Status |
+|------|----------|--------|
+| setup | print install/approve recipe | SHIPPED |
+| doctor | manifest + counts + optional validate | SHIPPED |
+| team ask hud wait mission wiki update | prints planned stub | STUB |
+| ralph autopilot execute ultragoal verify | unknown command | MISSING (slash only) |
+
+## 9. What Muse cannot host (so a full port is impossible)
+
+Native plugin capabilities keys: skills, commands, hooks, mcpServers, reminders. Rejected in this phase: tools, agents, outputStyles, settings, apps. Hook matcher is a Claude/Codex field. No statusline. No PreLLMCall. Live in-process ask is documented not-ready. Reserved plugin ids include loop and muse-core.
+
+Therefore even a complete OMM cannot be a 1:1 OMC/OMX: those products are runtimes (tmux, statusline, model routing, MCP apps). Honest ceiling for Muse 1.0.1 is richer hooks (PostToolUse, Stop block, compact flush), real omm verbs, optional MCP, and better prompt templates - still ADAPTED.
+
+## 10. Inventories consulted
+
+| Source | Result |
+|--------|--------|
+| /workspace/oh-my-musecode | plugin.json, 19 skills, 19 commands, 8 hooks, bin/omm.mjs |
+| /workspace/ohmy-research/oh-my-grok-dissection.md | full OMG v0.2 surface |
+| /workspace/ohmy-research/part9.md | empty (line-one); no omm plan |
+| omc-inventory / omx-inventory / omm-plan | not present under /workspace |
+| GitHub API Yeachan-Heo/oh-my-claudecode | plugin.json 5.1.0, 35 skills, 21 commands, hooks.json, omc CLI |
+| GitHub API Yeachan-Heo/oh-my-codex | plugin.json 0.21.1, plugin skills + native hook dispatcher |
+
+Text in this file is original. Skill bodies from OMC/OMX/OMG were not copied.
+
