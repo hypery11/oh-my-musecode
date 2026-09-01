@@ -27,3 +27,5 @@ jobs:
         run: python3 scripts/check-manifest.py
       - name: Keyword hook
         run: python3 tests/test_prompt_keywords.py
+      - name: Cwd resolution
+        run: python3 tests/test_cwd.py

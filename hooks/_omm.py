@@ -47,12 +47,37 @@ def unwrap_event(event: dict[str, Any]) -> dict[str, Any]:
 
 def cwd_from(event: dict[str, Any]) -> Path:
     event = unwrap_event(event)
-    for key in ("cwd", "Cwd", "working_directory", "workingDirectory"):
+    for key in (
+        "cwd",
+        "Cwd",
+        "working_directory",
+        "workingDirectory",
+        "workspace_root",
+        "workspaceRoot",
+        "workspace_path",
+        "workspacePath",
+        "workspace",
+        "project_dir",
+        "projectDir",
+    ):
         val = event.get(key)
-        if isinstance(val, str) and val:
+        if isinstance(val, str) and val.strip():
             return Path(val)
-    env = os.environ.get("MUSE_CWD") or os.environ.get("PWD") or os.getcwd()
-    return Path(env)
+    payload = event.get("payload")
+    if isinstance(payload, dict):
+        record = payload.get("record")
+        if isinstance(record, dict):
+            nested = record.get("workspace_root")
+            if isinstance(nested, str) and nested.strip():
+                return Path(nested)
+    omm_override = os.environ.get("OMM_DIR")
+    if isinstance(omm_override, str) and omm_override.strip():
+        return Path(omm_override).expanduser().resolve().parent
+    for env_key in ("MUSE_WORKSPACE", "MUSE_CWD"):
+        val = os.environ.get(env_key)
+        if isinstance(val, str) and val.strip():
+            return Path(val)
+    return Path(os.getcwd())
 
 
 def omm_dir(event: dict[str, Any]) -> Path:
@@ -68,7 +93,8 @@ def emit(obj: dict[str, Any] | None = None) -> None:
 def audit(event: dict[str, Any], hook_id: str, extra: dict[str, Any] | None = None) -> None:
     """Append one JSONL line to .omm/hooks.jsonl when the directory is writable."""
     try:
-        directory = omm_dir(event)
+        cwd = cwd_from(event)
+        directory = cwd / ".omm"
         directory.mkdir(parents=True, exist_ok=True)
         rec = {
             "ts": utc_now(),
@@ -76,9 +102,11 @@ def audit(event: dict[str, Any], hook_id: str, extra: dict[str, Any] | None = No
             "event": event.get("hook_event_name") or event.get("event") or "",
             "session_id": event.get("session_id") or event.get("sessionId") or "",
             "tool_name": event.get("tool_name") or event.get("toolName") or "",
+            "cwd": str(cwd),
         }
         if extra:
             rec.update(extra)
+            rec["cwd"] = str(cwd)
         path = directory / "hooks.jsonl"
         with path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
