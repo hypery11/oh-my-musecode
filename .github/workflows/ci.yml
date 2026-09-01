@@ -25,3 +25,5 @@ jobs:
         run: node --check bin/omm.mjs
       - name: Manifest sanity
         run: python3 scripts/check-manifest.py
+      - name: Keyword hook
+        run: python3 tests/test_prompt_keywords.py

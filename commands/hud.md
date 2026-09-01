@@ -12,4 +12,4 @@ Render a text heads-up display for the current OMM state.
 3. Print a compact markdown HUD (tables ok).
 4. Optionally write `.omm/hud.md` snapshot.
 
-CLI `omm hud` is a stub; this slash-command is the live path.
+CLI `omm hud` prints a live text snapshot of `.omm/` (not a TUI). This slash-command still renders in-session.

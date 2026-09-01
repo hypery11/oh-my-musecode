@@ -24,7 +24,8 @@ License: MIT. Copyright 2026 hypery11.
 | Native plugin (19 skills, 19 commands, 8 hooks) | **Plugin-ready** — validate with Muse 1.0.1-R2006.1 |
 | Ralph Stop loop (`decision: block`) | **Shipped** — `muse plugins hook test` confirms `should_block: true` |
 | `omm setup` / `omm doctor` | **Implemented** (local CLI, no deps) |
-| `omm team` `ask` `hud` `wait` `mission` `wiki` `update` | **CLI stubs** — print `planned: ...` |
+| `omm hud` | **Implemented** — text snapshot of `.omm/` (not a live TUI) |
+| `omm team` `ask` `wait` `mission` `wiki` `update` | **CLI stubs** — print `planned: ...` |
 | Slash-commands `/team` `/ask` `/hud` etc. | **Plugin-ready** (in-session templates, not a live tmux HUD) |
 
 There is **no** live tmux team dashboard or remote ask transport in this release. Do not assume those work.
@@ -70,7 +71,7 @@ From a git checkout:
 | Session state | Chat + transcripts | Durable `.omm/` plans, memory, traces, verify reports |
 | Hooks | You write them | 8 hooks: session, prompt keywords, skill gate, Ralph stop-chain, subagent log, compact placeholder |
 | Multi-agent | `subagent_spawn` + worktrees | Same Muse tools, plus team roster/log conventions |
-| Companion CLI | `muse` | `omm setup` / `omm doctor` (other `omm` verbs are stubs) |
+| Companion CLI | `muse` | `omm setup` / `omm doctor` / `omm hud` snapshot (other `omm` verbs are stubs) |
 | Experimental flag | Needed for plugins | Documented; required on 1.0.1-R2006.1 |
 
 ## Features
@@ -130,7 +131,8 @@ Workspace state lives under `.omm/` (see `.omm/README.md`). Plugin source is thi
 
 - `omm setup` — print Muse install/approve commands with the experimental flag
 - `omm doctor` — locate `muse`, check this tree, run validate if found
-- `omm team|ask|hud|wait|mission|wiki|update` — stubs (`planned: ...`)
+- `omm hud` — text snapshot of `.omm/` (not a live TUI)
+- `omm team|ask|wait|mission|wiki|update` — stubs (`planned: ...`)
 - `-h` / `--help` and `-V`
 
 ## Layout
@@ -148,7 +150,7 @@ Workspace state lives under `.omm/` (see `.omm/README.md`). Plugin source is thi
 
 Muse 1.0.1 的 plugin API 仍是實驗功能，請設定 `MUSE_EXPERIMENTAL_PLUGINS=1`，再用 `muse plugins install` / `marketplace` / `approve`。
 
-本版 **沒有** 實作即時 tmux 團隊儀表板或遠端 ask 通道。`omm team|ask|hud|...` 僅是 CLI 占位；真正可用的是 plugin 內的斜線指令與 hooks。完整中文說明見 [README.zh-TW.md](README.zh-TW.md)。
+本版 **沒有** 實作即時 tmux 團隊儀表板或遠端 ask 通道。`omm hud` 是 `.omm/` 的文字快照（不是即時 TUI）；其餘列出的 CLI 動詞仍是占位。真正可用的是 plugin 內的斜線指令與 hooks。完整中文說明見 [README.zh-TW.md](README.zh-TW.md)。
 
 ## Contributing
 

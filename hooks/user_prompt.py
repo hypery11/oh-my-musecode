@@ -16,6 +16,7 @@ KEYWORDS = ("ralplan", "ralph", "ultrathink", "autopilot")
 
 
 def extract_prompt(event: dict) -> str:
+    event = omm.unwrap_event(event)
     for key in ("prompt", "user_prompt", "userPrompt", "text", "message"):
         val = event.get(key)
         if isinstance(val, str):
@@ -24,7 +25,7 @@ def extract_prompt(event: dict) -> str:
 
 
 def main() -> None:
-    event = omm.read_stdin_json()
+    event = omm.unwrap_event(omm.read_stdin_json())
     prompt = extract_prompt(event)
     lower = prompt.lower()
     matched = None

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- `omm hud` is a real text snapshot of `.omm/` (not a live TUI); keyword hook accepts wrapper `{event, stdin}` fixtures
+
 ## 0.1.0 — 2026-09-01
 
 ### Added

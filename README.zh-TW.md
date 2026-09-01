@@ -24,7 +24,8 @@ Oh My Muse Code（plugin id `oh-my-musecode`，CLI `omm`）在原版 Muse 之上
 | 原生 plugin（19 技能、19 指令、8 hooks） | **Plugin 已就緒** — 請用 Muse 1.0.1-R2006.1 驗證 |
 | Ralph Stop 迴圈（`decision: block`） | **已上線** — `hook test` 確認 `should_block: true` |
 | `omm setup` / `omm doctor` | **已實作**（本地 CLI，無依賴） |
-| `omm team` `ask` `hud` `wait` `mission` `wiki` `update` | **CLI 占位** — 只印 `planned: ...` |
+| `omm hud` | **已實作** — `.omm/` 文字快照（不是即時 TUI） |
+| `omm team` `ask` `wait` `mission` `wiki` `update` | **CLI 占位** — 只印 `planned: ...` |
 | 斜線指令 `/team` `/ask` `/hud` 等 | **Plugin 已就緒**（會話內模板，不是即時 tmux HUD） |
 
 本版**沒有**即時 tmux 團隊儀表板或遠端 ask 傳輸。請勿假設那些功能已經能跑。
@@ -70,7 +71,7 @@ Marketplace（把 git remote 加進來源後）：
 | 會話狀態 | 聊天與 transcript | 可持久化的 `.omm/` 計畫、記憶、追蹤、驗證報告 |
 | Hooks | 自己寫 | 8 個：session、關鍵字、skill gate、Ralph stop-chain、subagent 紀錄、compact 占位 |
 | 多 agent | `subagent_spawn` + worktrees | 同一套 Muse 工具，加上 team roster/log 慣例 |
-| 伴隨 CLI | `muse` | `omm setup` / `omm doctor`（其餘 `omm` 動詞為占位） |
+| 伴隨 CLI | `muse` | `omm setup` / `omm doctor` / `omm hud` 快照（其餘 `omm` 動詞為占位） |
 | 實驗旗標 | plugins 需要 | 文件已標明；1.0.1-R2006.1 必開 |
 
 ## 功能
@@ -130,7 +131,8 @@ architect、planner、executor、explore、analyst、designer、debugger、trace
 
 - `omm setup` — 印出帶實驗旗標的 Muse 安裝／核准指令
 - `omm doctor` — 尋找 `muse`、檢查本樹、若找到二進位則跑 validate
-- `omm team|ask|hud|wait|mission|wiki|update` — 占位（`planned: ...`）
+- `omm hud` — `.omm/` 文字快照（不是即時 TUI）
+- `omm team|ask|wait|mission|wiki|update` — 占位（`planned: ...`）
 - `-h` / `--help` 與 `-V`
 
 ## 目錄

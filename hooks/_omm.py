@@ -30,7 +30,23 @@ def read_stdin_json() -> dict[str, Any]:
     return data if isinstance(data, dict) else {"_value": data}
 
 
+def unwrap_event(event: dict[str, Any]) -> dict[str, Any]:
+    """Accept live flat hook stdin or wrapper {event, stdin:{...}}.
+
+    Muse hook-test fixtures nest fields under stdin; live hooks send the inner object at the top level. Prefer stdin for cwd and prompt when present.
+    """
+    if not isinstance(event, dict):
+        return {}
+    inner = event.get("stdin")
+    if not isinstance(inner, dict):
+        return event
+    merged = {k: v for k, v in event.items() if k != "stdin"}
+    merged.update(inner)
+    return merged
+
+
 def cwd_from(event: dict[str, Any]) -> Path:
+    event = unwrap_event(event)
     for key in ("cwd", "Cwd", "working_directory", "workingDirectory"):
         val = event.get(key)
         if isinstance(val, str) and val:

@@ -25,7 +25,7 @@ Evidence classes for OMM rows: hook scripts under `hooks/`, `bin/omm.mjs`, `.mus
 
 **v0.1.0 is a declared-surface plus stubs, not a full port of the public feature surface.**
 
-The catalog is wide: 19 role skills, 19 slash-commands, 8 hook ids, and an `omm` CLI. What actually runs is a thin Python hook set (keyword to `.omm/mode.json`, optional skill-gate deny, Ralph `systemMessage` stop nudge, subagent JSONL, session greeting) plus `omm setup` / `omm doctor`, and a real Ralph Stop `decision:block`. Everything else named after OMC live engines — team tmux, ask providers, HUD statusline, ralph/ulw completion-promise loops, boulder/todo continuation, autopilot stage machine, wiki/memory/verify ledgers with session hooks — is either a prompt template, a CLI stub, or absent. OMG hashline / intent-gate / LSP / vendored superpowers are absent. Muse cannot host Claude statusline, Haiku/Opus routing, or plugin `apps`/`agents`; MCP and reminders are legal and still empty.
+The catalog is wide: 19 role skills, 19 slash-commands, 8 hook ids, and an `omm` CLI. What actually runs is a thin Python hook set (keyword to `.omm/mode.json`, optional skill-gate deny, Ralph `systemMessage` stop nudge, subagent JSONL, session greeting) plus `omm setup` / `omm doctor` / `omm hud` text snapshot, and a real Ralph Stop `decision:block`. Everything else named after OMC live engines — team tmux, ask providers, live HUD statusline, ralph/ulw completion-promise loops, boulder/todo continuation, autopilot stage machine, wiki/memory/verify ledgers with session hooks — is either a prompt template, a CLI stub, or absent. OMG hashline / intent-gate / LSP / vendored superpowers are absent. Muse cannot host Claude statusline, Haiku/Opus routing, or plugin `apps`/`agents`; MCP and reminders are legal and still empty.
 
 Calling this a port of OMC 5.x / OMX 0.21 / OMG 0.2 would overclaim. It is a Muse-native nameplate and prompt catalog with a few real gates.
 
@@ -41,7 +41,7 @@ Calling this a port of OMC 5.x / OMX 0.21 / OMG 0.2 would overclaim. It is a Mus
 | Unified Stop chain | persistent-mode + drift + simplifier | Stop in native hook | ralph then boulder then todo then LSP then plan.md | ralph iterations only | ADAPTED |
 | `/team` + worktrees | native team + `omc team` tmux | team runtime | n/a | command md + subagent log; CLI stub | TEMPLATE + STUB |
 | `ask` providers | live `omc ask` / `/ask` | live ask skill | n/a | command md; CLI stub | TEMPLATE + STUB |
-| HUD / statusline | live `omc hud` + Claude statusline | live HUD | n/a | command md snapshot; CLI stub | TEMPLATE + STUB / CANNOT live bar |
+| HUD / statusline | live `omc hud` + Claude statusline | live HUD | n/a | CLI text snapshot of `.omm/`; slash `/hud` template; no live statusline | CLI snapshot SHIPPED (adapted); live statusline CANNOT; slash `/hud` TEMPLATE |
 | `/deep-interview` | live Socratic skill | live skill | n/a | command md | TEMPLATE |
 | `/ultragoal` | artifacts + CLI | live skill | n/a | command md | TEMPLATE |
 | `/handoff` | session artifacts | session | skill + prompt collector | command md | TEMPLATE |
@@ -124,7 +124,7 @@ Related slash `/omm-skill` is TEMPLATE (tells the model to summarize a skill fil
 | Worktrees | OMC native team worktree mode; Muse already has `.muse/worktrees/` | skills/commands mention worktrees; no creator CLI | ADAPTED (docs only) |
 | `/ask` multi-provider | OMC/OMX live advisor (claude/codex/gemini/antigravity/grok/cursor) | `commands/ask.md` routes to a skill, not a provider CLI | TEMPLATE / ADAPTED |
 | CLI `ask` | live | stub | STUB |
-| Live HUD / statusline | OMC `omc hud` + Claude statusline preset; OMX HUD | `/hud` tells the model to print a markdown table from `.omm/*`; `omm hud` stub | TEMPLATE + STUB |
+| Live HUD / statusline | OMC `omc hud` + Claude statusline preset; OMX HUD | `omm hud` text snapshot of `.omm/`; `/hud` still prints an in-session markdown table; no Muse statusline | CLI snapshot SHIPPED (adapted); slash TEMPLATE; live bar CANNOT |
 | Claude/Codex statusline injection | OMC/OMX | Muse plugin capabilities: skills, commands, hooks, mcpServers, reminders only. No statusline / apps | CANNOT |
 
 Muse spec: live remote ask transport is not ready. Even a faithful OMC-style provider advisor would be a companion-CLI feature, not a plugin capability.
@@ -184,7 +184,8 @@ Muse spec: live remote ask transport is not ready. Even a faithful OMC-style pro
 |------|----------|--------|
 | setup | print install/approve recipe | SHIPPED |
 | doctor | manifest + counts + optional validate | SHIPPED |
-| team ask hud wait mission wiki update | prints planned stub | STUB |
+| hud | text snapshot of `.omm/` (not a TUI) | SHIPPED (adapted) |
+| team ask wait mission wiki update | prints planned stub | STUB |
 | ralph autopilot execute ultragoal verify | unknown command | MISSING (slash only) |
 
 ## 9. What Muse cannot host (so a full port is impossible)

@@ -36,7 +36,7 @@ After any manifest or path change, run Muse plugins validate with experimental p
 3. Persist decisions, plans, traces, and verify evidence under .omm/.
 4. Use subagent_spawn with a bounded prompt; one owner per file cluster.
 5. Hook scripts: read stdin JSON, audit .omm/hooks.jsonl if writable, print {} or a real decision. Never emit a bare permissionDecision=allow.
-6. Keep CLI stubs honest — team/ask/hud/wait/mission/wiki/update print planned until implemented.
+6. Keep CLI stubs honest — team/ask/wait/mission/wiki/update print planned until implemented. `omm hud` is a text snapshot of `.omm/`, not a live TUI.
 
 ## Layout
 
