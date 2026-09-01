@@ -1,6 +1,6 @@
-> Unreleased engines: file-based team/ask/wait/mission/wiki/update CLI + extended Stop chain. Still not a 1:1 OMC port. Version stays 0.1.1 until the 0.2.0 bump.
+> v0.2.0 ships file-based team/ask/wait/mission/wiki/update CLI + extended Stop chain. Still not a 1:1 OMC port.
 
-# Oh My Muse Code v0.1.0 — feature completeness matrix
+# Oh My Muse Code v0.2.0 — feature completeness matrix
 
 Compared against public surfaces of:
 
@@ -31,7 +31,7 @@ What actually runs: Python hooks (keyword mode, skill-gate, fail-open intent-gat
 
 ## Compact scoreboard
 
-| Feature | OMC | OMX | OMG | OMM v0.1 | Status |
+| Feature | OMC | OMX | OMG | OMM v0.2 | Status |
 |---------|-----|-----|-----|----------|--------|
 | 19 role catalog | live agents + routing | role skills / workers | different 3-agent set | 19 SKILL.md files | TEMPLATE |
 | `/ralph` + stop continuation | live persistent-mode | live Stop dispatcher | Go ralph/ulw + promise tags | command md + stop-chain `decision:block` (hook test confirmed) | SHIPPED (adapted) |

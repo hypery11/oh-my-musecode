@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-01 (Taipei)
+
 ### Added
 - File-based companion CLI: `omm team`, `ask`, `wait`, `mission`, `wiki`, `update` (no tmux, no remote model)
 - Stop chain also honors `.omm/ulw.json` / `ultrawork.json`, `.omm/boulder.json`, and a capped `.omm/todo.json` nudge
@@ -13,7 +15,7 @@
 - Hook `cwd_from` prefers `workspace_root` / `OMM_DIR` / `MUSE_WORKSPACE` over lying `PWD`
 
 ### Notes
-- Still not 1:1 OMC. Templates remain for interview/verify/ralplan/etc.
+- Still not 1:1 OMC. Templates remain for interview/verify/ralplan/etc. CLI+hooks now have real file-based state machines.
 
 
 ## 0.1.1 — 2026-09-01 (Taipei)
