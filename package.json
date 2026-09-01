@@ -19,7 +19,11 @@
     "README.md",
     "README.zh-TW.md",
     "LICENSE",
-    "AGENTS.md"
+    "AGENTS.md",
+    "docs/assets",
+    "docs/FEATURE-MATRIX.md",
+    "docs/LAUNCH.md",
+    "CHANGELOG.md"
   ],
   "keywords": [
     "muse",
