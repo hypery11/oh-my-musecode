@@ -1,6 +1,7 @@
 # Oh My Muse Code
 
 [![License: MIT](https://img.shields.io/github/license/hypery11/oh-my-musecode)](LICENSE)
+[![npm](https://img.shields.io/npm/v/oh-my-musecode)](https://www.npmjs.com/package/oh-my-musecode)
 
 **Meta Muse Code 缺少的生產力層。**
 
@@ -50,6 +51,12 @@ Marketplace（把 git remote 加進來源後）：
     MUSE_NO_AUTO_UPDATE=1 MUSE_LOGIN=0 MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins validate . --json
 
 可選 CLI：
+
+    npm i -g oh-my-musecode
+    omm setup
+    omm doctor
+
+從 git checkout：
 
     node bin/omm.mjs setup
     node bin/omm.mjs doctor

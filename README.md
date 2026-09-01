@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/github/license/hypery11/oh-my-musecode)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/hypery11/oh-my-musecode/ci.yml?branch=main)](https://github.com/hypery11/oh-my-musecode/actions)
 [![Release](https://img.shields.io/github/v/release/hypery11/oh-my-musecode)](https://github.com/hypery11/oh-my-musecode/releases)
+[![npm](https://img.shields.io/npm/v/oh-my-musecode)](https://www.npmjs.com/package/oh-my-musecode)
 
 **The missing productivity layer for Meta Muse Code.**
 
@@ -50,6 +51,12 @@ Validate without installing:
     MUSE_NO_AUTO_UPDATE=1 MUSE_LOGIN=0 MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins validate . --json
 
 Companion CLI (optional):
+
+    npm i -g oh-my-musecode
+    omm setup
+    omm doctor
+
+From a git checkout:
 
     node bin/omm.mjs setup
     node bin/omm.mjs doctor
