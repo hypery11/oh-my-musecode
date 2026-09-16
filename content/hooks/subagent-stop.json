@@ -1,0 +1,8 @@
+{
+  "id": "omm-subagent-stop",
+  "event": "SubagentStop",
+  "command": ["omm", "hook", "subagent-stop"],
+  "timeoutMs": 2000,
+  "statusMessage": "omm: subagent log",
+  "async": false
+}

@@ -1,0 +1,23 @@
+[package]
+name = "omm-doctor"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "The D1–D14 checks with exact fix commands, and the context cost model."
+
+[dependencies]
+# The ledger is read through `omm_doctor::ledger`, a read-only view of the
+# ARCHITECTURE §4 schema, so this crate builds independently of the crates
+# being filled in beside it; the CLI hands D1 the ledger's approved ids.
+omm-host = { path = "../omm-host" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# Not dev-only: every live measurement (D8, `omm cost`) runs the host against a
+# throwaway data root, and the cost variants against a throwaway copy of the
+# config root, never the user's.
+tempfile.workspace = true
+walkdir.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

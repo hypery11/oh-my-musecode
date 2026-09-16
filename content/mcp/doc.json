@@ -1,0 +1,6 @@
+{
+  "id": "doc",
+  "transport": "stdio",
+  "command": ["omm", "mcp"],
+  "enabledDefault": true
+}

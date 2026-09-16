@@ -1,0 +1,5 @@
+[
+ {"call":{"raw_name":"mcp__plugin_omm_up.echo_upper","arguments":{"text":"unapproved dot form"},"expect":"reject"}},
+ {"call":{"raw_name":"mcp__plugin_omm_up__echo_upper","arguments":{"text":"unapproved canonical id"},"expect":"reject"}},
+ {"text":"MOCK-FINAL-ANSWER unapproved control done"}
+]

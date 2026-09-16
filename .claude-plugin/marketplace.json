@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "omm",
+  "owner": {
+    "name": "oh-my-musecode"
+  },
+  "plugins": [
+    {
+      "name": "oh-my-musecode",
+      "version": "1.0.0",
+      "description": "oh-my-musecode: a curated content bundle, thin CLI and git marketplace for Meta Muse Code.",
+      "source": "./dist/claude"
+    }
+  ]
+}

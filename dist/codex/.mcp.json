@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "doc": {
+      "type": "stdio",
+      "command": "omm",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

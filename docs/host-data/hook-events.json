@@ -1,0 +1,158 @@
+{
+  "source": [
+    "research/musecode/hooks.md",
+    "research/musecode/plugins.md",
+    "research/experiments/plugin-contract.md",
+    "research/experiments/canary-diff.md",
+    "research/musecode/skills.md"
+  ],
+  "observed_build": "1.0.3-R2198.1",
+  "previous_stable_build": "1.0.1-R2006.1",
+  "also_verified_on": "1.0.1-R2006.1, 1.1.0-R2009.1, 1.1.0-R2074.1 (17 accepted, 10 foreign names rejected on every build, 2026-09-05)",
+  "counts": { "events": 17, "fire_in_echo_session": 6, "payload_proven": 8, "payload_plausible": 5, "payload_unknown": 4 },
+  "enum": "HookEventKind",
+  "case_rule": "PascalCase only. `.muse/hooks.json` / settings.hooks keys and plugin `event` values must be PascalCase; a snake_case key silently loads nothing in a hooks file and is `unsupported-hook-event` in a plugin manifest. The snake_case forms are used for hook_key, context-block ids (`hook:<snake_event>:<scope>:<index>`) and the enterprise policy map.",
+  "foreign_event_compat": "Claude Code's `Setup` parses in a foreign manifest with a warning (`recognized but is not run by Muse`) and is rejected in a native manifest; `PreSubmit`/`Error`/unknown names → `unsupported-hook-event`.",
+  "decision_kinds": {
+    "block":      "stdout JSON `{\"decision\":\"block\",\"reason\":\"…\"}` (reason required) → status blocked, effects ['blocked']; on Stop/SubagentStop it requests a continuation.",
+    "stop":       "stdout JSON `{\"continue\":false}` → status blocked, effects ['stopped'].",
+    "context":    "stdout JSON `hookSpecificOutput.additionalContext` → a developer-role context block in the runtime_hook lane (order 900000+n).",
+    "feedback":   "effect 'feedback' — the block reason is also fed back to the model as feedback_message (PostToolUse) or as a plain feedback effect (PostToolUseFailure).",
+    "rewrite":    "PreToolUse only: `hookSpecificOutput.permissionDecision:\"allow\"` + `updatedInput` → decision updated_input, effect rewrite_selected (bare allow without updatedInput is rejected; later rewrites supersede earlier ones as rewrite_ignored).",
+    "permission_verdict": "PermissionRequest only: `hookSpecificOutput.decision` = `{\"behavior\":\"allow\"}` or `{\"behavior\":\"deny\",\"message\":\"…\"}` (ask / updatedInput / extra keys rejected; deny without message uses default reason `PermissionRequest hook denied approval`).",
+    "skills_v1":  "UserPromptSubmit / PostToolUse foreground command hooks declaring outputCapabilities [\"skills.v1\"] may return `hookSpecificOutput.selectedSkills:[{id,path,description}]` (gated by MUSE_EXPERIMENTAL_HOOK_SELECTED_SKILLS + _APPLY).",
+    "bare_stdout_context": "Non-JSON stdout is injected as context ONLY on SessionStart and UserPromptSubmit; elsewhere it is accepted with no effect."
+  },
+  "matrix_legend": { "true": "accepted with the stated effect", "false": "status failed: `unsupported <field> in … of <Event> hook output`", "null": "accepted, silently no effect" },
+  "common_payload": {
+    "always": ["hook_event_name", "session_id", "cwd", "transcript_path", "model", "permission_mode"],
+    "turn_scoped_add": ["turn_id"],
+    "note": "PROVEN on the 6 live-fired events; assumed for the rest. transcript_path was null and model \"unknown\" under --provider echo."
+  },
+  "items": [
+    {
+      "name": "SessionStart", "snake": "session_start", "fires_in_echo_session": true,
+      "decisions": { "block": false, "stop": true, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": true },
+      "matcher_selector": "source",
+      "payload": { "proven": ["source"], "plausible": [], "unknown": false, "vocab": { "source": ["startup", "resume", "clear", "fork"] }, "note": "Not turn-scoped (no turn_id). `source` enum = SessionStartActivationSourceV1; only `startup` observed live." }
+    },
+    {
+      "name": "UserPromptSubmit", "snake": "user_prompt_submit", "fires_in_echo_session": true,
+      "decisions": { "block": true, "stop": null, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": true, "bare_stdout_context": true },
+      "matcher_selector": null,
+      "payload": { "proven": ["prompt", "turn_id"], "plausible": [], "unknown": false, "note": "No matcher selector: any matcher other than `*`/absent/\"\" silently disables the whole group. The ONLY event that accepts selectedSkills end-to-end (skills.md verification R7 corrected the earlier SessionStart claim)." }
+    },
+    {
+      "name": "PreToolUse", "snake": "pre_tool_use", "fires_in_echo_session": false,
+      "decisions": { "block": true, "stop": false, "context": true, "feedback": false, "rewrite": true, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "tool name (INFERRED from foreign-manifest `matcher`/`if` handling; not exercised against a real tool call)",
+      "payload": { "proven": [], "plausible": ["tool_input", "tool_use_id", "tool_name"], "unknown": false, "note": "tool_input/tool_use_id come from a separate rodata run `hook_event_nametool_inputtool_use_idPreToolUse`; tool_name is adjacency only. Verdict vocabulary: hookSpecificOutput.permissionDecision allow|deny|ask (+ updatedInput for allow); legacy `decision: approve` rejected, legacy `decision: block` accepted." }
+    },
+    {
+      "name": "PermissionRequest", "snake": "permission_request", "fires_in_echo_session": false,
+      "decisions": { "block": true, "stop": false, "context": false, "feedback": false, "rewrite": false, "permission_verdict": true, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "tool name (INFERRED)",
+      "payload": { "proven": [], "plausible": ["tool_name", "tool_input"], "unknown": false, "note": "Uses `hookSpecificOutput.decision.behavior`; `permissionDecision` is rejected here — PreToolUse and PermissionRequest have disjoint verdict vocabularies." }
+    },
+    {
+      "name": "PostToolUse", "snake": "post_tool_use", "fires_in_echo_session": false,
+      "decisions": { "block": true, "stop": true, "context": true, "feedback": true, "rewrite": false, "permission_verdict": false, "skills_v1": true, "bare_stdout_context": false },
+      "matcher_selector": "tool name (INFERRED)",
+      "payload": { "proven": [], "plausible": ["tool_use_id", "tool_response"], "unknown": false, "note": "block → effects ['blocked','feedback'] with feedback_message; continue:false → ['stopped','feedback']. `updatedMCPToolOutput` is rejected: a PostToolUse hook cannot rewrite a tool result in 1.0.1. `reason` without `decision: block` is an error. selectedSkills accepted here with no observable effect." }
+    },
+    {
+      "name": "PreLLMCall", "snake": "pre_llm_call", "fires_in_echo_session": true,
+      "decisions": { "block": true, "stop": null, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": null,
+      "payload": { "proven": ["provider", "request_id", "attempt", "step", "messages", "message_count", "tools", "tool_count", "options", "turn_id"], "plausible": [], "unknown": false, "note": "tools[] entries carry {name, description, has_parameters, strict}. Block message: `pre-LLM hook blocked model call`." }
+    },
+    {
+      "name": "PostLLMCall", "snake": "post_llm_call", "fires_in_echo_session": true,
+      "decisions": { "block": true, "stop": null, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": null,
+      "payload": { "proven": ["provider", "request_id", "attempt", "step", "status", "response_id", "usage", "finish_reason", "error", "output_text_preview", "tool_call_count", "messages", "message_count", "tools", "tool_count", "options", "turn_id"], "plausible": [], "unknown": false, "note": "usage = {input_tokens, output_tokens, cached_tokens, reasoning_tokens}. Block message: `post-LLM hook blocked model result`." }
+    },
+    {
+      "name": "PreCompact", "snake": "pre_compact", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": true, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": ["hook_event_name", "trigger", "session_id", "turn_id", "cwd", "transcript_path", "model", "permission_mode", "model_provider"], "plausible": [], "unknown": false, "note": "Measured live on 1.3.0-R3057.1 via a mock-provider big-text loop with soft threshold 0.02 (observed trigger `soft`; the old R1 note is superseded: no `reason`, there IS a `trigger`). continue:false → `pre-compact hook vetoed compaction`. Crash probe (exit 1): host records `hook_run_terminal` with `status: failed`, `exit_code: 1`, still evaluates the `soft_threshold_async` compaction candidate and ends the session clean — fail-open proven live. PostCompact never fired across 4+ compactions: still unobserved." }
+    },
+    {
+      "name": "PostCompact", "snake": "post_compact", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": null, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": [], "unknown": true }
+    },
+    {
+      "name": "SubagentStart", "snake": "subagent_start", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": null, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": ["hook_event_name", "subagent_id", "child_session_id", "session_id", "turn_id", "cwd", "transcript_path", "model", "permission_mode"], "plausible": [], "unknown": false, "note": "Measured live on 1.3.0-R3057.1 (reminder children in an echo session). No agent_id/agent_type on the wire." }
+    },
+    {
+      "name": "SubagentStop", "snake": "subagent_stop", "fires_in_echo_session": false,
+      "decisions": { "block": true, "stop": null, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": ["subagent_id", "child_session_id", "session_id"], "unknown": false, "note": "Never fired for reminder children that crash at startup (config_error); natural-stop payload unobserved live. Identity keys inferred by symmetry with SubagentStart, unconfirmed; outcome keys intentionally unlisted. block → `subagent stop hook requested continuation`." }
+    },
+    {
+      "name": "Stop", "snake": "stop", "fires_in_echo_session": true,
+      "decisions": { "block": true, "stop": true, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": null,
+      "payload": { "proven": ["stop_hook_active", "last_assistant_message", "turn_id"], "plausible": [], "unknown": false, "note": "block → `stop hook requested continuation`, capped by settings.max_consecutive_stop_hook_continuations (default 8 → 9 assistant turns); stop_hook_active flips to true on every continuation after the first." }
+    },
+    {
+      "name": "SessionEnd", "snake": "session_end", "fires_in_echo_session": true,
+      "decisions": { "block": false, "stop": null, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "reason",
+      "payload": { "proven": ["reason"], "plausible": [], "unknown": false, "vocab": { "reason": ["other"] }, "note": "Not turn-scoped. Only `other` observed (headless exit); no enum literal for the vocabulary exists in the binary. The hook runs (marker file written) but emits NO hook_run_terminal record in session.jsonl." }
+    },
+    {
+      "name": "Notification", "snake": "notification", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": false, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": ["notification_type"], "unknown": false, "vocab": { "notification_type": ["permission_prompt"] }, "note": "Observe-only: every output kind is unsupported. `permission_prompt` / `Muse Code needs approval` recovered from strings." }
+    },
+    {
+      "name": "PostToolUseFailure", "snake": "post_tool_use_failure", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": true, "context": true, "feedback": true, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": [], "unknown": true, "note": "`decision: block` here yields status completed with effects ['feedback'] — feedback, not a block." }
+    },
+    {
+      "name": "StopFailure", "snake": "stop_failure", "fires_in_echo_session": false,
+      "decisions": { "block": false, "stop": null, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": [], "unknown": true }
+    },
+    {
+      "name": "PostToolBatch", "snake": "post_tool_batch", "fires_in_echo_session": false,
+      "decisions": { "block": true, "stop": true, "context": true, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
+      "matcher_selector": "unknown",
+      "payload": { "proven": [], "plausible": [], "unknown": true }
+    }
+  ],
+  "protocol": {
+    "exit_codes": "Only exit 2 blocks (stderr = reason). 0 = completed; 1/3/127 = status failed, non-blocking (fail-open). `muse exec` exits 1 on a hook block; the reason lands in the run record as terminal cancelled.",
+    "stdout_ceiling_bytes": 16384,
+    "stdout_ceiling_note": "Inclusive: 16384 → completed; 16385 → failed / output_too_large.",
+    "timeout": "No default timeout — an omitted `timeout` lets a hook block forever; `timeout: 0` is clamped to 1 s; a string timeout drops the handler. Every shipped hook must set timeout ≥ 1.",
+    "shell": "Config-file hooks run `command` via `$SHELL -c` (fallback /bin/sh when SHELL unset) with a 16-key scrubbed env; native plugin hooks take a `command` ARRAY (no shell, no placeholder expansion). Windows dispatches into PowerShell (`commandWindows` / `command_windows`).",
+    "cwd": "The workspace. No $CLAUDE_PROJECT_DIR / $MUSE_PROJECT_DIR / $MUSE_WORKSPACE_ROOT variable exists.",
+    "plugin_env": ["MUSE_PLUGIN_ID", "MUSE_PLUGIN_ROOT", "MUSE_PLUGIN_DATA_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA", "PLUGIN_ROOT", "PLUGIN_DATA"],
+    "plugin_data_dir_note": "MUSE_PLUGIN_DATA_DIR is advertised but NOT created — mkdir -p it.",
+    "tiers": ["managed (settings.managed_hooks_path, replaced by TBH_MANAGED_HOOKS_PATH) order 0", "user (settings.json → hooks) order 1", "project (<ws>/.muse/hooks.json, trust-gated; never loads untrusted, no error) order 2", "plugin (capabilities.hooks[], requires plugins gate to install + approve; runs ungated once trusted_enabled) order 100000+"],
+    "matcher_semantics": "`|`-separated word-only tokens = exact case-sensitive alternation; any regex metacharacter → compiled, unanchored match; invalid regex → group unmatchable; bare `*`, absent or \"\" = wildcard.",
+    "plugin_hook_fields": { "closed_set": true, "fields": ["id", "event", "command", "timeoutMs", "statusMessage", "async", "compatibilityName", "outputCapabilities"], "rejected": ["matcher", "silent", "description"], "notes": "compatibilityName must not collide with a built-in tool name; outputCapabilities must be exactly [\"skills.v1\"] and only on foreground UserPromptSubmit/PostToolUse; async:true is accepted (consumes a display_order slot, emits no records)." },
+    "config_hook_fields": ["command", "commandWindows", "command_windows", "timeout", "statusMessage", "async", "asyncRewake", "rewake", "rewakeMessage", "rewakeSummary", "condition", "if", "outputCapabilities"],
+    "config_hook_fields_note": "`env`, `shell` are NOT handler fields (drop the handler). Unknown event keys drop only that key.",
+    "offline_test": "MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins hook test <plugin>:<hook> --fixture f.json --json — fixture must be {\"event\":\"<Event>\",\"stdin\":{…}} (optional matcher_input, cwd). Does not require approval.",
+    "session_log": "hook_run_started / hook_run_terminal records; stdout is elided unless the run failed; SessionEnd emits no terminal row; display_order is a session-wide counter over admitted handlers."
+  },
+  "notes": [
+    "The 17×3 capability matrix (block / continue:false / additionalContext) was measured per event with `muse plugins hook test` and re-confirmed cell-by-cell in the verification pass.",
+    "Hooks are not on the MSP wire: `muse schema` exports zero hook types; MSP sessions run no hooks.",
+    "Bare-stdout context injection on SessionStart/UserPromptSubmit only (verification R6)."
+  ]
+}

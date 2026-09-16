@@ -1,0 +1,27 @@
+[package]
+name = "omm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "oh-my-musecode: a curated content bundle, thin CLI and git marketplace for Meta Muse Code."
+
+[[bin]]
+name = "omm"
+path = "src/main.rs"
+
+[dependencies]
+omm-host = { path = "../omm-host" }
+omm-ledger = { path = "../omm-ledger" }
+omm-manifest = { path = "../omm-manifest" }
+omm-doctor = { path = "../omm-doctor" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tempfile.workspace = true
+# `omm enable skill-routing` walks a library skill directory without
+# following links (R12) before copying it into the workspace.
+walkdir.workspace = true
+
+[dev-dependencies]
+walkdir.workspace = true

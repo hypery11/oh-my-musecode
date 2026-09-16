@@ -1,0 +1,772 @@
+<title>oh-my-musecode Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EDF0F3;
+  --surface:#FFFFFF;
+  --surface-2:#F5F8FA;
+  --ink:#0E151B;
+  --ink-2:#33414E;
+  --muted:#5D6B78;
+  --faint:#8593A0;
+  --rule:#D3DBE2;
+  --rule-2:#E4EAEF;
+  --accent:#1A5FD0;
+  --accent-soft:#E4EDFC;
+  --proven:#0B7A5E;
+  --proven-soft:#DDF0EA;
+  --inferred:#9A5B00;
+  --inferred-soft:#F8EDD9;
+  --dead:#A8291F;
+  --dead-soft:#F8E4E2;
+  --shadow:0 1px 2px rgba(14,21,27,.05),0 8px 24px -12px rgba(14,21,27,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1116;
+    --surface:#121A21;
+    --surface-2:#18222B;
+    --ink:#E3EBF2;
+    --ink-2:#BAC7D3;
+    --muted:#8A9AA8;
+    --faint:#6B7B89;
+    --rule:#243039;
+    --rule-2:#1D2831;
+    --accent:#67A6FF;
+    --accent-soft:#15263D;
+    --proven:#48C08F;
+    --proven-soft:#0F2A22;
+    --inferred:#DCA43F;
+    --inferred-soft:#2C2211;
+    --dead:#F0736A;
+    --dead-soft:#331715;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1116;
+  --surface:#121A21;
+  --surface-2:#18222B;
+  --ink:#E3EBF2;
+  --ink-2:#BAC7D3;
+  --muted:#8A9AA8;
+  --faint:#6B7B89;
+  --rule:#243039;
+  --rule-2:#1D2831;
+  --accent:#67A6FF;
+  --accent-soft:#15263D;
+  --proven:#48C08F;
+  --proven-soft:#0F2A22;
+  --inferred:#DCA43F;
+  --inferred-soft:#2C2211;
+  --dead:#F0736A;
+  --dead-soft:#331715;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  font-size:15px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+code,kbd,.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ---------- shell ---------- */
+.shell{max-width:1180px;margin:0 auto;padding:0 24px 96px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;align-items:start}
+@media(max-width:960px){.shell{grid-template-columns:1fr;gap:0}}
+
+/* ---------- masthead ---------- */
+.masthead{grid-column:1/-1;padding:56px 0 28px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.eyebrow .dot{width:4px;height:4px;border-radius:50%;background:var(--faint)}
+h1{
+  font-family:"IBM Plex Mono",monospace;font-weight:600;
+  font-size:clamp(30px,5vw,46px);line-height:1.06;letter-spacing:-.035em;
+  margin:18px 0 0;text-wrap:balance;
+}
+h1 .dim{color:var(--faint)}
+.standfirst{margin:16px 0 0;max-width:64ch;font-size:17px;line-height:1.55;color:var(--ink-2)}
+
+.stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--rule);border-bottom:1px solid var(--rule)}
+.stat{background:var(--ground);padding:18px 4px 20px}
+.stat b{display:block;font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{display:block;margin-top:7px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- rail ---------- */
+.rail{position:sticky;top:24px;padding-top:44px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+@media(max-width:960px){.rail{display:none}}
+.rail a{display:block;padding:5px 0;color:var(--muted);text-decoration:none;border-left:2px solid transparent;padding-left:11px;transition:color .12s,border-color .12s}
+.rail a:hover{color:var(--accent);border-left-color:var(--accent)}
+.rail a .n{color:var(--faint);margin-right:7px}
+.rail hr{border:0;border-top:1px solid var(--rule);margin:14px 0}
+
+/* ---------- content ---------- */
+main{padding-top:44px;min-width:0}
+section{margin-bottom:64px;scroll-margin-top:24px}
+h2{
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:24px;letter-spacing:-.03em;
+  margin:0 0 6px;display:flex;gap:12px;align-items:baseline;text-wrap:balance;
+}
+h2 .n{color:var(--accent);font-size:15px;font-weight:500}
+h3{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;letter-spacing:-.01em;margin:36px 0 10px;color:var(--ink)}
+.lede{color:var(--muted);max-width:70ch;margin:0 0 24px;font-size:14.5px}
+p{max-width:68ch;margin:0 0 14px}
+ul{max-width:68ch;margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px}
+strong{font-weight:600}
+a{color:var(--accent)}
+
+/* ---------- verdict ---------- */
+.verdict{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:26px 28px;box-shadow:var(--shadow)}
+.verdict .claim{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:600;letter-spacing:-.025em;line-height:1.3;margin:0 0 14px;max-width:none;text-wrap:balance}
+.verdict p:last-child{margin-bottom:0}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;white-space:nowrap;vertical-align:1px}
+.c-proven{background:var(--proven-soft);color:var(--proven)}
+.c-inferred{background:var(--inferred-soft);color:var(--inferred)}
+.c-dead{background:var(--dead-soft);color:var(--dead)}
+.c-gate{background:var(--accent-soft);color:var(--accent)}
+.c-none{background:var(--rule-2);color:var(--muted)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--surface);margin:0 0 12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--rule);
+  position:sticky;top:0;white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+td.mono,th.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tnote{font-size:12.5px;color:var(--muted);margin:0 0 26px;max-width:72ch}
+code{background:var(--surface-2);border:1px solid var(--rule-2);border-radius:2px;padding:.5px 4px;font-size:12.5px}
+td code,th code{background:none;border:0;padding:0}
+
+/* ---------- callout ---------- */
+.callout{border-left:2px solid var(--accent);background:var(--surface);padding:14px 18px;margin:0 0 22px;border-radius:0 3px 3px 0}
+.callout.warn{border-left-color:var(--inferred)}
+.callout.bad{border-left-color:var(--dead)}
+.callout p{margin:0;font-size:14px}
+.callout .t{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px}
+
+/* ---------- cards ---------- */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:0 0 22px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:16px 18px}
+.card h4{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;margin:0 0 7px;letter-spacing:-.01em}
+.card p{font-size:13.5px;color:var(--ink-2);margin:0;max-width:none}
+
+/* ---------- ledger (dead ends) ---------- */
+.ledger{list-style:none;padding:0;margin:0 0 8px;max-width:none}
+.ledger li{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:9px 0;border-bottom:1px solid var(--rule-2);margin:0;font-size:13.5px}
+.ledger li:last-child{border-bottom:0}
+.ledger .k{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--dead);font-weight:500}
+@media(max-width:620px){.ledger li{grid-template-columns:1fr;gap:3px}}
+
+/* ---------- steps ---------- */
+.steps{list-style:none;padding:0;margin:0;counter-reset:s;max-width:none}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule-2);margin:0}
+.steps li:last-child{border-bottom:0}
+.steps li::before{
+  content:"M" counter(s,decimal);grid-row:1/3;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--accent);
+  padding-top:2px;
+}
+.steps h4{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600;margin:0 0 4px}
+.steps p{margin:0;font-size:13.5px;color:var(--ink-2);max-width:none}
+.steps li:first-child::before{content:"M0"}
+.steps li:nth-child(2)::before{content:"M1"}
+.steps li:nth-child(3)::before{content:"M2"}
+.steps li:nth-child(4)::before{content:"M3"}
+.steps li:nth-child(5)::before{content:"M4"}
+
+footer{grid-column:1/-1;border-top:1px solid var(--rule);padding-top:22px;margin-top:8px;font-size:12.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+footer p{max-width:78ch;margin:0 0 8px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>Meta Muse Code 1.0.1-R2006.1</span><span class="dot"></span>
+      <span>~180 agents · 45M tokens</span><span class="dot"></span>
+      <span>2026-09-05</span>
+    </div>
+    <h1>oh-my-musecode <span class="dim">— Blueprint</span></h1>
+    <p class="standfirst">A binary-level teardown of Meta's Muse Code, a source-level teardown of every
+    <code>oh-my-*</code> framework built for an AI coding agent, and the decision those two produce together.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b>12</b><span>Subsystems reversed</span></div>
+    <div class="stat"><b>36</b><span>Extension points</span></div>
+    <div class="stat"><b>45</b><span>Axes stable vs canary</span></div>
+    <div class="stat"><b>14</b><span>Rivals torn down</span></div>
+    <div class="stat"><b>493</b><span>Tests in the gate</span></div>
+  </div>
+
+  <nav class="rail">
+    <a href="#verdict"><span class="n">01</span>Verdict</a>
+    <a href="#host"><span class="n">02</span>The host</a>
+    <a href="#points"><span class="n">03</span>Extension points</a>
+    <a href="#dead"><span class="n">04</span>Dead ends</a>
+    <a href="#compat"><span class="n">05</span>Compatibility</a>
+    <a href="#rivals"><span class="n">06</span>The rivals</a>
+    <a href="#gaps"><span class="n">07</span>The gap</a>
+    <a href="#shape"><span class="n">08</span>Recommended shape</a>
+    <a href="#unknowns"><span class="n">09</span>Settled</a>
+    <a href="#built"><span class="n">10</span>Built</a>
+    <hr>
+    <a href="#method"><span class="n">11</span>Method</a>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section id="verdict">
+      <h2><span class="n">01</span>Verdict</h2>
+      <div class="verdict" style="border-color:var(--proven);background:var(--proven-soft);margin-bottom:20px">
+        <p class="claim" style="color:var(--proven);margin-bottom:10px">GO. Start M0 and M1 now.</p>
+        <p style="margin-bottom:0">Twelve follow-up experiments settled the questions that were blocking this.
+        A single bundle ships skills, commands, hooks <em>and working model tools</em>, headlessly, and the
+        experimental gate is needed only at install time. The extension surface did not move across a full
+        minor version — 45 measured axes, two cosmetic differences. Two things are blocked permanently and
+        should be struck rather than deferred: <strong>an enterprise tier</strong> and
+        <strong>MSP-based tool registration</strong>.</p>
+      </div>
+      <div class="verdict">
+        <p class="claim">Muse Code already has the loader. It does not have the ecosystem.</p>
+        <p>Meta shipped a compiled Rust extension runtime that is better than every <code>oh-my-*</code> loader
+        ever written — a schema-versioned plugin manifest, a validator with 25 typed diagnostic codes,
+        content-addressed package caching, per-capability trust bound to a package digest, two lockfiles,
+        git marketplaces, and native ingestion of Claude Code's and Codex's plugin formats.</p>
+        <p>And it ships that runtime with <strong>no public content, no registry, and effectively no
+        documentation</strong>. The <code>muse plugins</code> subsystem has exactly one oblique mention in the
+        entire public documentation corpus. Every published review says no plugin ecosystem, no marketplace
+        and no community catalogue exists. All three exist.</p>
+      </div>
+      <h3>Three facts set the whole design</h3>
+      <div class="grid2">
+        <div class="card">
+          <h4>Cost is measured in tokens</h4>
+          <p>Every extension mechanism ends up as bytes in one <code>POST /responses</code> body. The skills
+          catalog is capped at 32,000 bytes and degrades in <strong>three stages</strong> — intact, then
+          <strong>descriptions dropped tail-first in total silence</strong> (<code>skills list --json</code>
+          still reports every skill with empty diagnostics), then entries vanish, which <em>is</em> announced.
+          Stage two is the dangerous one. Meta's own 15 built-ins eat 10,060 bytes of the cap, leaving
+          <strong>21,542 bytes</strong> for a bundle.</p>
+        </div>
+        <div class="card">
+          <h4>Trust is the master gate</h4>
+          <p>Project rules, skills, hooks, workflows, agent definitions and plugin installs are all inert
+          until the workspace is trusted. <code>--trust-workspace</code> explicitly does not persist, and
+          there is no <code>muse trust</code> command — only the TUI's first-run prompt writes
+          <code>trust.json</code>. Hand-writing the file works.</p>
+        </div>
+        <div class="card">
+          <h4>Claude's format is now tri-vendor</h4>
+          <p>Muse reads <code>~/.claude/skills</code> live with no import step, installs
+          <code>.claude-plugin/plugin.json</code> bundles, reads Claude's <code>marketplace.json</code>,
+          honours <code>${CLAUDE_PLUGIN_ROOT}</code>, and falls back to <code>CLAUDE.md</code>.
+          Author once in the Claude shape and you ship to three agents.</p>
+        </div>
+      </div>
+      <div class="callout bad">
+        <span class="t">The one thing a roadmap must not promise</span>
+        <p>The status line and prompt <strong>cannot be themed</strong>. oh-my-posh is an entire product built
+        on that surface. Muse renders <code>provider · [effort ·] cwd [· YOLO]</code> from compiled code, and
+        no template, format or component key exists anywhere in the 29 settings keys or the 14-field
+        <code>TuiSettings</code> struct.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="host">
+      <h2><span class="n">02</span>The host</h2>
+      <p class="lede">What you are building on top of, in the shape that changes design decisions.</p>
+
+      <div class="tw"><table>
+        <thead><tr><th>Property</th><th>Finding</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Binary</td><td>Single stripped Mach-O arm64, 241 MB, <code>__text</code> ≈ 180 MB. Rust 1.97.1, built in Meta's fbsource monorepo. Ten crates: <code>agent · cli · config · model · plugins · tui · session-server · session-view · session-view-serve · local-tracing</code>.</td></tr>
+          <tr><td class="mono">Delivery</td><td>A bash launcher auto-updates <strong>hourly</strong> from a signed channel, then <code>exec</code>s the binary with argv verbatim. <code>MUSE_NO_AUTO_UPDATE</code> is <strong>launcher-only</strong> — 0 occurrences inside the binary.</td></tr>
+          <tr><td class="mono">Channels</td><td><code>muse-stable</code> at 1.0.1-R2006.1. <code>muse-canary</code> is already a full minor ahead at <strong>1.1.0-R2009.1</strong>, selectable with <code>MUSE_CHANNEL_URL</code>.</td></tr>
+          <tr><td class="mono">CLI</td><td>16 top-level commands (14 advertised). <code>plugins</code> needs a gate; <code>workflows</code> is never advertised yet always enabled. Five incompatible argument parsers with different error dialects. Parse failure exits 2, runtime failure exits 1.</td></tr>
+          <tr><td class="mono">Config root</td><td><code>$XDG_CONFIG_HOME/muse</code> else <code>~/.config/muse</code> — <code>settings.json</code>, <code>auth.json</code>, <code>trust.json</code>, <code>skills/</code>, <code>themes/</code>. Exactly two candidates, no third fallback, <strong>no <code>MUSE_HOME</code></strong>.</td></tr>
+          <tr><td class="mono">Data root</td><td><code>$XDG_DATA_HOME/muse</code> else <code>~/.local/share/muse</code> — <code>sessions/</code>, <code>plugins/</code>, <code>memory/</code>, <code>local-tracing/</code>.</td></tr>
+          <tr><td class="mono">Layering</td><td>enterprise (defaults + policy planes) &gt; user <code>settings.json</code> &gt; workspace. Env beats <code>settings.json</code>; CLI flags beat both.</td></tr>
+          <tr><td class="mono">Gates</td><td>41 <code>MUSE_EXPERIMENTAL_*</code> vars, <strong>14 default-ON</strong>. Only two change the CLI surface (<code>PLUGINS</code>, <code>EXTERNAL_AGENT_INGRESS</code>); the other 39 gate in-session tools and TUI panels. Every resolution is logged as <code>gate.resolve</code>.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="callout warn">
+        <span class="t">Two traps that will bite an installer</span>
+        <p><code>settings.json</code> is <strong>rewritten from a typed struct during ordinary sessions and
+        destroys unknown keys</strong> — never park framework state in it. And a malformed
+        <code>schema_version</code> is a hard startup failure, so every write must be validated before it lands.</p>
+      </div>
+
+      <h3>The context-block model — Muse's equivalent of <code>.zshrc</code></h3>
+      <p>Everything a framework installs becomes an ordered developer-role block in one HTTP body. This is
+      the mental model that governs every design decision, because it is where the budget is spent.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Order</th><th>Block</th><th class="num">Budget</th><th>On overflow</th></tr></thead>
+        <tbody>
+          <tr><td class="mono num">100</td><td class="mono">rules_file</td><td class="mono num">256,000 B/file · 65,536 B total</td><td><span class="chip c-proven">warns</span></td></tr>
+          <tr><td class="mono num">181</td><td class="mono">workflow_cookbook</td><td class="mono num">18,056 B</td><td>removable via <code>run.workflow_trigger_mode</code></td></tr>
+          <tr><td class="mono num">200</td><td class="mono">skills_catalog</td><td class="mono num">32,000 B · 21,542 B usable</td><td><span class="chip c-dead">silent at stage 2</span></td></tr>
+          <tr><td class="mono num">201</td><td class="mono">selected_skills_catalog</td><td class="mono num">200 + 201 ≤ 31,984 B</td><td>shared budget · <code>combined-budget</code></td></tr>
+          <tr><td class="mono num">900000+n</td><td class="mono">hook additionalContext</td><td class="mono num">—</td><td>per-hook</td></tr>
+          <tr><td class="mono num">u32::MAX</td><td class="mono">memory_snapshot</td><td class="mono num">16,305 B · 48 files/scope</td><td><span class="chip c-dead">silent drop</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="tnote">Progressive disclosure is real: the catalog carries only id, scope, path and description;
+      bodies are fetched on demand by the <code>read_skill</code> tool. Observed <code>instructions</code>
+      field 36,613 B; whole tools array 40,284 B.</p>
+    </section>
+
+    <!-- 03 -->
+    <section id="points">
+      <h2><span class="n">03</span>Extension points</h2>
+      <p class="lede">Every confirmed way to change Muse Code's behaviour from outside the binary, ranked by
+      how much of an <code>oh-my-*</code>-shaped product it can carry. All entries below are
+      <span class="chip c-proven">proven</span> — reproduced by running the binary, not inferred from strings.</p>
+
+      <h3>High leverage</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Point</th><th>Mechanism</th><th>Gate</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Personal skills</strong><br><span style="color:var(--muted);font-size:12.5px">zero-install</span></td>
+            <td class="mono"><code>$CONFIG_DIR/skills/&lt;id&gt;/SKILL.md</code> › <code>~/.agents/skills/</code> › <code>~/.claude/skills/</code> › <code>~/.codex/skills/</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">First-hit-wins per id. Foreign roots tagged <code>origin-family</code> / <code>written-for</code> so the model discounts harness-specific prose.</span></td>
+            <td><span class="chip c-none">none</span></td>
+          </tr>
+          <tr>
+            <td><strong>Project skills</strong></td>
+            <td class="mono"><code>&lt;ws&gt;/.agents/skills/</code> › <code>.codex/skills/</code> › <code>.claude/skills/</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">Foreign order is <strong>inverted</strong> vs personal scope. Exactly one directory deep — nested dirs are silently not discovered.</span></td>
+            <td><span class="chip c-gate">trust</span></td>
+          </tr>
+          <tr>
+            <td><strong>Managed skill store</strong><br><span style="color:var(--muted);font-size:12.5px">a real package manager</span></td>
+            <td class="mono"><code>muse skills install|update|uninstall|validate|import --from claude|codex</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">Writes <code>lock.json</code> (per-file sha256, trust, scan slot), JSONL <code>audit.log</code>, <code>quarantine/</code>, <code>import-quarantine/</code>.</span></td>
+            <td><span class="chip c-none">none</span></td>
+          </tr>
+          <tr>
+            <td><strong>Personal rules</strong><br><span style="color:var(--muted);font-size:12.5px">the one <code>.zshrc</code> slot</span></td>
+            <td class="mono"><code>$CONFIG_DIR/AGENTS.md</code> → <code>$CONFIG_DIR/CLAUDE.md</code> → <code>~/.claude/CLAUDE.md</code> → <code>~/.codex/AGENTS.md</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)"><strong>Exactly one file loads.</strong> First hit wins.</span></td>
+            <td><span class="chip c-none">none</span></td>
+          </tr>
+          <tr>
+            <td><strong>Project rules</strong></td>
+            <td class="mono"><code>AGENTS.md</code> in every dir from VCS root down to cwd<br><span style="font-family:'IBM Plex Sans';color:var(--muted)">They <strong>accumulate</strong> shallow→deep, not nearest-wins. Without a <code>.git</code> marker the walk collapses to cwd alone.</span></td>
+            <td><span class="chip c-gate">trust</span></td>
+          </tr>
+          <tr>
+            <td><strong>Hooks</strong><br><span style="color:var(--muted);font-size:12.5px">4 tiers, 17 events</span></td>
+            <td class="mono">managed → user <code>settings.json</code> → project <code>&lt;ws&gt;/.muse/hooks.json</code> → plugin<br><span style="font-family:'IBM Plex Sans';color:var(--muted)">No <code>schema_version</code>. Event keys are <strong>PascalCase only</strong>. The <code>command</code> string is run by <code>$SHELL -c</code>.</span></td>
+            <td><span class="chip c-gate">trust / approve</span></td>
+          </tr>
+          <tr>
+            <td><strong>Plugin bundle</strong><br><span style="color:var(--muted);font-size:12.5px">the distribution unit</span></td>
+            <td class="mono"><code>.muse-plugin/plugin.json</code> — <code>schemaVersion:1</code>, <code>name</code>, <code>version</code>, <code>description</code> (required non-empty), <code>capabilities</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">Capabilities: <code>skills · commands · hooks · mcpServers · reminders</code>. Trust is granted <strong>per capability</strong>, keyed to a <code>definition_hash</code> binding the package digest.</span></td>
+            <td><span class="chip c-gate">MUSE_EXPERIMENTAL_PLUGINS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Git marketplace</strong><br><span style="color:var(--muted);font-size:12.5px">the registry Muse already reads</span></td>
+            <td class="mono"><code>muse plugins marketplace add &lt;name&gt; &lt;owner/repo|git-url|path&gt;</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">Probes <strong><code>.claude-plugin/marketplace.json</code></strong> — Claude Code's exact schema — and <code>.agents/plugins/marketplace.json</code>. The id <code>tbh-curated</code> is reserved and empty.</span></td>
+            <td><span class="chip c-gate">MUSE_EXPERIMENTAL_PLUGINS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Reminder agents</strong><br><span style="color:var(--muted);font-size:12.5px">the deepest Muse-only surface</span></td>
+            <td class="mono">plugin <code>capabilities.reminders[]</code><br><span style="font-family:'IBM Plex Sans';color:var(--muted)">A fully declarative sandboxed DSL — envelope, delivery role, body template with slots, validators, 6 proposal branches, 4 lifecycle policies, 18 limit caps. <strong>No code executes.</strong> Nothing in the rival ecosystem resembles this.</span></td>
+            <td><span class="chip c-gate">MUSE_EXPERIMENTAL_PLUGINS</span></td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Medium leverage</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Point</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Themes</strong></td><td class="mono"><code>$XDG_CONFIG_HOME/muse/themes/*.tmTheme</code> → <code>tui.theme = "custom:&lt;stem&gt;"</code>. 24 bundled (15 dark / 9 light) plus <code>Dynamic</code>, derived from an OSC 10/11/4 terminal probe at startup. Extension is case-insensitive; <code>.json</code> is ignored; the <em>data</em> dir is not scanned.</td></tr>
+          <tr><td><strong>Keymap</strong></td><td class="mono"><code>settings.tui.keymap</code> over 4 contexts and 37 actions; <code>[]</code> unbinds. Validated offline by <code>muse config validate</code>.</td></tr>
+          <tr><td><strong>Agent definitions</strong></td><td class="mono"><code>&lt;ws&gt;/.agents/agents/**/*.md</code> and <code>$CONFIG_DIR/agents/**/*.md</code>. YAML frontmatter; <code>name:</code> is authoritative, filename ignored. Ephemeral overlay via <code>--agents '&lt;JSON&gt;'</code> — <strong>one bad name kills the entire overlay</strong>, while filesystem sources drop per-entry.</td></tr>
+          <tr><td><strong>Named workflows</strong></td><td class="mono">JavaScript at <code>&lt;ws&gt;/.agents/workflows/&lt;name&gt;.js</code> and <code>$CONFIG_DIR/workflows/</code>. <code>muse workflows save|list|run|recover</code>.</td></tr>
+          <tr><td><strong>Permission profiles</strong></td><td class="mono">Built-ins <code>:read-only :ask-me :auto-review :unrestricted</code>. User-defined in <code>permissions.profiles.&lt;id&gt;</code> with four dimensions plus <code>extends</code> (≤16 deep, cycle-checked).</td></tr>
+          <tr><td><strong>MCP servers</strong></td><td class="mono"><code>settings.json → mcpServers.&lt;id&gt;</code>, 13 fields. The <strong>only</strong> third-party model-tool path — <code>capabilities.tools</code> is rejected outright with the message that a custom tool is exposed by an MCP server, not a <code>tools</code> capability.</td></tr>
+          <tr><td><strong>MSP host</strong></td><td class="mono"><code>muse serve</code> — line-delimited JSON-RPC 2.0 over stdio, 40 client→server methods (31 published + 9 undocumented). <code>session/list</code>, <code>session/read</code> and <code>view/page</code> take <strong>no writer lease</strong>, so a second host can observe every session on the machine. Gated by <code>MUSE_EXPERIMENTAL_SDK_ENABLED</code>, which is default-<em>on</em>.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 04 -->
+    <section id="dead">
+      <h2><span class="n">04</span>Dead ends</h2>
+      <p class="lede">Confirmed non-points. Each was actively probed — candidate paths planted with poison
+      files, or fields exercised until they errored. Do not build on these.</p>
+      <ul class="ledger">
+        <li><span class="k">workspace settings</span><span>No workspace settings file exists. 26 candidate paths planted; none read.</span></li>
+        <li><span class="k">plugin autoload</span><span>No auto-discovery of project plugin directories. Valid packages in <code>.agents/plugins</code>, <code>.claude/plugins</code>, <code>.codex/plugins</code>, <code>.muse/plugins</code> and <code>plugins/</code> were discovered in neither trusted nor untrusted workspaces. Plugins must be explicitly installed.</span></li>
+        <li><span class="k">status line</span><span>No <code>statusline</code>, <code>prompt</code> or <code>format</code> key in any of the 29 settings keys or the 14 <code>tui</code> fields.</span></li>
+        <li><span class="k">allowed-tools</span><span>Parsed, canonicalised, recorded — and explicitly <strong>not enforced</strong>, with a warning-severity diagnostic that says so.</span></li>
+        <li><span class="k">enterprise policy</span><span>Every <code>execution.*</code> field returns <code>field_not_activated</code>, including <code>forbid_approval_bypass</code> and <code>permission_profiles</code>. An org cannot forbid <code>--yolo</code> today.</span></li>
+        <li><span class="k">capabilities</span><span><code>tools</code>, <code>agents</code>, <code>outputStyles</code>, <code>settings</code> and <code>apps</code> are hard <code>unsupported-capability</code> errors in a native manifest.</span></li>
+        <li><span class="k">MSP plugins</span><span>Plugins are not on the wire. <code>plugin</code> appears <strong>0 times</strong> in the exported JSON Schema and 0 times in the TypeScript export.</span></li>
+        <li><span class="k">env vars</span><span><code>MUSE_HOME</code>, <code>MUSE_CONFIG_DIR</code>, <code>MUSE_SESSIONS</code> and <code>MUSE_NO_SESSION_LOG</code> are not read by the binary. <code>MUSE_SESSIONS</code> is prose inside a bundled skill.</span></li>
+        <li><span class="k">plugin data dir</span><span><code>MUSE_PLUGIN_DATA_DIR</code> is advertised in the hook environment but the directory is <strong>not created</strong>. A plugin must <code>mkdir -p</code> it.</span></li>
+        <li><span class="k">enterprise tier</span><span>The policy plane accepts only documents that express nothing — every field carrying content returns <code>field_not_activated</code> — and the delivery directory cannot be written by anything Meta ships. The defaults plane is live; a restriction cannot be shipped. <strong>Strike the team edition from the roadmap.</strong></span></li>
+        <li><span class="k">MSP tool registration</span><span>MSP has no tool-invocation method and no tool-registration method. An MSP session assembles <strong>no run context at all</strong> and runs <strong>no hooks</strong>. The served surface is <code>session/* turn/* model/list view/* approval/* userInput/*</code>. Building a control plane on MSP is not a deferred option, it is a non-option.</span></li>
+        <li><span class="k">HOME redirection</span><span>Redirecting <code>HOME</code> does <strong>not</strong> sandbox muse — it composes a session-name-authority path from the <em>real</em> user home via <code>getpwuid</code> and writes there on essentially every run.</span></li>
+      </ul>
+      <div class="callout warn">
+        <span class="t">The risk no offline check can see</span>
+        <p>Both builds carry a server-side <code>feature_config</code> provider whose override list includes
+        <code>extensions.skills.allowed_digests</code>, <code>allowed_kinds</code>,
+        <code>extensions.hooks</code> and <code>extensions.runtime_capabilities</code>. <strong>Meta can
+        allowlist which skills and extension kinds are permitted without shipping a binary.</strong> Pinning a
+        checksum will not catch it. The mechanism is proven; the behaviour needs an authenticated machine to
+        exercise. Design so a rejected extension is <em>detectable</em> — compare what actually composed in a
+        live session against what was written to disk, never disk against disk.</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section id="compat">
+      <h2><span class="n">05</span>Compatibility</h2>
+      <p class="lede">The distribution multiplier no rival has. Muse's loader recognises four manifest families,
+      and reads two foreign skill roots live with no import step.</p>
+
+      <div class="tw"><table>
+        <thead><tr><th>Manifest</th><th>Family</th><th>What is translated</th><th>What is dropped</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">.muse-plugin/</td><td class="mono">native</td><td>skills · commands · hooks · mcpServers · reminders</td><td><code>developerPrompts</code> hard-gated off</td></tr>
+          <tr><td class="mono">.claude-plugin/</td><td class="mono">claude-compatible</td><td>commands · skills · hooks (full <code>hooks.json</code> incl. <code>matcher</code> and <code>${CLAUDE_PLUGIN_ROOT}</code>) · mcpServers</td><td><code>agents</code>, <code>outputStyles</code>, <code>lspServers</code>, <code>userConfig</code> — dropped <em>with warnings</em></td></tr>
+          <tr><td class="mono">.codex-plugin/</td><td class="mono">codex-compatible</td><td>skills (one string path) · mcpServers (a path to <code>.mcp.json</code>)</td><td>commands, apps, dependencies</td></tr>
+          <tr><td class="mono">plugin.json</td><td class="mono">agent-plugins</td><td colspan="2">Agent Plugins 1.0.0 — family exists, <code>$schema</code> literal not recovered <span class="chip c-inferred">unsettled</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="tnote">A package may hold <strong>exactly one</strong> manifest. The lockfile records which
+      family it came from: <code>"muse"</code>, <code>"claude"</code>, <code>"codex"</code>.</p>
+
+      <div class="callout">
+        <span class="t">Why this is the whole opportunity</span>
+        <p><strong>Inbound:</strong> the existing Claude Code ecosystem installs into Muse with zero
+        re-authoring — 2,282 community plugins, 291 official, and <strong>32,192</strong>
+        <code>.claude-plugin/marketplace.json</code> files in GitHub code search. Your catalogue is non-empty on
+        day one and you author none of it. <strong>Outbound:</strong> one generated bundle installs into
+        Muse Code, Claude Code and Codex CLI. No competitor in the sweep has this, and the only repo
+        positioned anywhere near it sits at 34 stars.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="rivals">
+      <h2><span class="n">06</span>The rivals</h2>
+      <p class="lede">Fourteen projects torn down at source level — cloned, counted, and re-verified by a
+      second agent that re-ran the star counts and the file counts. The pattern is saturated by name and
+      empty by substance.</p>
+
+      <h3>Nobody has all four</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Project</th><th>Working uninstall</th><th>Lockfile with readers</th><th>Override / overlay</th><th>Registry</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">oh-my-claudecode</td><td>✗ 143 of 154 files survive, prints success</td><td>✗ zero consumers</td><td>✗ closed const roster</td><td>✗</td></tr>
+          <tr><td class="mono">oh-my-codex</td><td>~ name-matched, deletes the edits setup protected</td><td>✓</td><td>✗</td><td>✗</td></tr>
+          <tr><td class="mono">oh-my-openagent</td><td>~ Codex only</td><td>✗</td><td>✓ best in space</td><td>✗</td></tr>
+          <tr><td class="mono">oh-my-pi</td><td>✗ none; leaves credentials and model weights</td><td>✓ plugins only</td><td>✓ best substrate</td><td>~ protocol, no index</td></tr>
+          <tr><td class="mono">opencode-slim</td><td>✗ manual doc already drifted</td><td>✓</td><td>~ agents only</td><td>✗</td></tr>
+          <tr><td class="mono">rlaope/oh-my-hermes</td><td>✓ best in sweep</td><td>✓ refuse-on-drift</td><td>✗</td><td>✗</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tnote">Across 14 teardowns and roughly 300 name-matching repos, not one project has all four.
+      The closest, <code>oh-my-pi</code>, has three — and loads third-party plugins in-process with the
+      agent's credentials, with no signature, checksum or trust prompt.</p>
+
+      <h3>Traction is mostly theatre</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Project</th><th class="num">Stars</th><th class="num">Weekly npm DL / star</th><th>What it actually is</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">oh-my-openagent</td><td class="num">68,585</td><td class="num">0.89</td><td>An <strong>agent</strong>, not a config layer. Renamed from oh-my-opencode, kept the npm name.</td></tr>
+          <tr><td class="mono">oh-my-claudecode</td><td class="num">38,933</td><td class="num">0.15</td><td>The canonical config framework. Best install-time ownership, zero uninstall-time ownership.</td></tr>
+          <tr><td class="mono">oh-my-codex</td><td class="num">32,946</td><td class="num">0.12</td><td>Best lifecycle engineering found. Shipped auto-setup-on-install and deliberately reverted it.</td></tr>
+          <tr><td class="mono">oh-my-pi</td><td class="num">28,857</td><td class="num">3.95</td><td>An explicit <strong>fork of the Pi agent</strong>, 694k LOC. Ships zero user-facing skills.</td></tr>
+          <tr><td class="mono">opencode-slim</td><td class="num">8,560</td><td class="num">1.60</td><td>The only real three-way merge in the space. Converts ~10× better per star than the leaders.</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tnote">Genuinely adopted dev tools run 1–10 downloads per star. The two biggest "frameworks"
+      run at 0.12–0.15 with 0–1 open issues against 1,267–1,414 lifetime issues at roughly one release a day
+      from a single primary author — machine-cadence closing, not absence of problems. Two projects shell out
+      to <code>gh api --method PUT /user/starred/…</code> from their own installers. Treat no design choice
+      here as validated by usage; only by reading the code.</p>
+
+      <div class="callout warn">
+        <span class="t">The timing precedent</span>
+        <p>DeepSeek Harness shipped mid-August 2026. Within roughly <strong>ten days, eleven distinct
+        <code>oh-my-dsh</code> repos</strong> existed from unrelated authors — and the two that took the
+        auto-synced-catalog position beat the ones that shipped orchestration features. The name is contested
+        within days, and the winner is whoever becomes the index the others point at.</p>
+        <p style="margin-top:10px">Meanwhile the entire third-party Muse ecosystem is six repos at ≤2 stars,
+        three of them model shims. <code>topic:muse-plugin</code> returns <strong>zero</strong>.
+        <code>oh-my-musecode</code> and npm <code>omm</code> appear unclaimed.</p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="gaps">
+      <h2><span class="n">07</span>The gap</h2>
+      <p class="lede">Catalogs are saturated — Anthropic's skills repo alone sits at 173k stars. The scarce
+      good is lifecycle. The market has stated the gap out loud three separate times.</p>
+      <div class="grid2">
+        <div class="card"><h4>oh-my-destructor · 29★</h4><p>Exists for the sole purpose of safely uninstalling oh-my-claudecode.</p></div>
+        <div class="card"><h4>dsh-plugin-upgrade-skill · 33★</h4><p>Exists for the sole purpose of migrating plugins across host versions.</p></div>
+        <div class="card"><h4>Switch-Omo-Config · omo-switch</h4><p>Profile switching, invented twice independently for one host.</p></div>
+      </div>
+
+      <h3>Where <code>oh-my-X</code> precedent exists and Muse has nothing native</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Gap</th><th>Why it is the product</th></tr></thead>
+        <tbody>
+          <tr><td><strong>No cost attribution</strong></td><td>The catalog silently drops content past 32,000 bytes with empty diagnostics. Nothing in the ecosystem can detect this. A tool that reports bytes and estimated tokens per source is immediately useful and blocks a real correctness bug.</td></tr>
+          <tr><td><strong>No desired-state reconcile</strong></td><td>There is no lockfile for anything except the managed skill store, and no way to say "this is the set I want" and converge to it.</td></tr>
+          <tr><td><strong>No registry</strong></td><td>The binary's own curated slot, <code>tbh-curated</code>, is reserved and empty.</td></tr>
+          <tr><td><strong>No trust bootstrap</strong></td><td><code>trust.json</code> gates six subsystems and no CLI writes it. Hand-writing works — so a one-command <code>omm trust</code> is pure value.</td></tr>
+          <tr><td><strong>No settings merge tool</strong></td><td>The file eats unknown keys on every rewrite, and there is no safe way to apply a slice of settings.</td></tr>
+          <tr><td><strong>No profile switching</strong></td><td>Not across settings, permission profile, activation map, rules variant, theme and gate bundle together.</td></tr>
+          <tr><td><strong>No authoring lint</strong></td><td><code>muse skills validate</code> returns <code>valid: true, diagnostics: []</code> for a skill gated on an unknown experimental gate — which excludes it entirely at runtime.</td></tr>
+          <tr><td><strong>No namespace policy</strong></td><td>Nothing prevents a shipped skill id from colliding with the 15 bundled skills or the 36 built-in slash commands.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 08 -->
+    <section id="shape">
+      <h2><span class="n">08</span>Recommended shape</h2>
+      <div class="verdict" style="margin-bottom:26px">
+        <p class="claim" style="font-size:17px">oh-my-musecode is a curated content bundle, a thin CLI, and a git marketplace. It is not a loader, and it must never touch the binary.</p>
+        <p style="margin-bottom:0">oh-my-zsh won on five things — zero-friction authoring, a vendored bundle that made the default
+        config already good, a three-line user config, a git-ignored override directory, and an updater that
+        respected the user. It lost on four: no manifest, no registry, no laziness, no namespace management.
+        <strong>Muse's runtime already fixes all four losses.</strong> The job is to reproduce the five wins on
+        top of it, and add the thing no <code>oh-my-X</code> ever built: per-source cost attribution.</p>
+      </div>
+
+      <h3>Install tiers — inverted by the experiments</h3>
+      <p>The original plan made the skills-only path the default because the plugin gate looked like user
+      friction. It is not: <code>MUSE_EXPERIMENTAL_PLUGINS=1</code> is an <strong>install-time gate only</strong>,
+      proven twice independently. An installed bundle's skills, commands, hooks, MCP servers and agent
+      definitions all compose at session time with the gate unset — so <code>omm</code> sets it on its own
+      subprocess and the user never exports anything.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Tier</th><th>What it does</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><strong>bundle</strong><br>default</td><td>Add the marketplace, install the plugin, approve per capability while showing what each one does — then <strong>verify via <code>plugins inspect</code> that the line reads literally <code>trusted_enabled</code></strong></td><td>One artifact ships skills, commands, hooks and working model tools, digest-pinned. Friction against the skills-only path is now nearly zero.</td></tr>
+          <tr><td class="mono"><strong>--no-plugin</strong><br>fallback</td><td><code>muse skills install</code> per curated skill · <code>$CONFIG_DIR/AGENTS.md</code> · a validated settings slice · themes · <code>omm.lock.json</code> · print the token budget consumed</td><td>Kept working and CI-tested, because it is the only path that cannot be turned off by a flag Meta owns.</td></tr>
+          <tr><td class="mono"><strong>repo</strong></td><td>Scaffold <code>AGENTS.md</code>, <code>.agents/skills/</code>, <code>.muse/hooks.json</code>, <code>.agents/workflows/</code> — and critically, write the <code>trust.json</code> entry</td><td>Trust is the master gate and nothing else can grant it.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout bad">
+        <span class="t">Four kill switches, all silent at session time</span>
+        <p>MCP spawn is gated on <code>trusted_enabled</code>. <code>review_needed</code> — the default right
+        after install — <code>trusted_disabled</code> and <code>modified</code> are all skipped with no stderr,
+        no session record and no trace line, while the capability snapshot still reports
+        <code>mcp_servers=N</code> because that field counts <em>declared</em> capabilities. Worse,
+        <code>muse plugins disable</code> <strong>deletes the capability line</strong> rather than setting a bad
+        status, so a doctor that greps for a bad value sees nothing at all. Any byte change to the package
+        flips everything to <code>modified</code>. <code>omm</code> must own this lifecycle end to end.</p>
+      </div>
+
+      <h3>Build order</h3>
+      <ol class="steps">
+        <li><div><h4>omm doctor + omm cost, standalone</h4><p>Zero install footprint, immediate value, and it makes every later decision measurable. It also single-handedly surfaces the silent catalog-drop bug, which nothing else in the ecosystem can do.</p></div></li>
+        <li><div><h4>Tier 0 install + lint + uninstall + 8–12 skills</h4><p>The smallest curated set that is obviously good. Cross-publish to <code>~/.claude/skills</code> so it lands for Claude Code users too. <strong>Ship the uninstaller before the installer.</strong></p></div></li>
+        <li><div><h4>Lockfile + reconcile + snapshot</h4><p>Three-way merge against a recorded ancestor hash. The thing every <code>oh-my-X</code> except fisher and antidote got wrong.</p></div></li>
+        <li><div><h4>Marketplace + bundle + hooks + MCP servers — pulled forward</h4><p>This was gated entirely on "does plugin MCP work". It does, in all three lanes, so it moves up into M1/M2. Reminders, themes and keymaps stay here and are deprioritised.</p></div></li>
+        <li><div><h4>Skill routing — new, advanced, opt-in only</h4><p><code>skills.v1</code> is real: negotiation was a missing <code>outputCapabilities</code> field on our side, and <code>read_skill</code> does resolve a routed non-discovered skill by id and by path. But it rides two experimental gates and a per-workspace vendored library, so it can never be a dependency. Build the M1 ledger so this is cheap later; make nothing depend on it.</p></div></li>
+      </ol>
+
+      <h3>The five things that cannot be retrofitted</h3>
+      <p>If only five ship, ship these. Everything else can be added on top of a correct ledger; none of these
+      can be added underneath one that was never written.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Decision</th><th>Learned from</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ownership ledger as the primitive</strong> — every managed path gets an entry at write time, and install, update, reconcile, doctor and uninstall are all the same traversal over it</td><td>oh-my-claudecode built one reactively after a duplicate-agents bug and needed 202 hand-generated history records to compensate</td></tr>
+          <tr><td><strong>Record what the installer wrote, never a scan of the destination</strong></td><td>oh-my-codex, verbatim: digesting the destination tree instead would poison the receipt</td></tr>
+          <tr><td><strong>Three-way merge from the first release</strong> — ancestor hash recorded, four outcomes: no-op, overwrite, adopt, stage</td><td>opencode-slim, the only implementation found; its empty legacy-hash table proves retrofitting an ancestor after users have edited files is the hard case</td></tr>
+          <tr><td><strong>Overlay before bundled, plus an append channel</strong> — <code>&lt;name&gt;.md</code> replaces, <code>&lt;name&gt;_append.md</code> appends</td><td>The append channel is the single highest-leverage idea in the sweep: it stops most merges from ever existing. Its absence is what produced 5,630 forks against 312 contributors on oh-my-openagent</td></tr>
+          <tr><td><strong>Pin and verify the transport</strong> — a tag or commit SHA, per-file sha256, resolved ref recorded in the lockfile</td><td>oh-my-agent fetches an unverified <code>main</code>-branch tarball on every install and update, while shipping 418 unused sha256 entries on disk</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 09 -->
+    <section id="unknowns">
+      <h2><span class="n">09</span>Settled</h2>
+      <p class="lede">Twelve experiments, each RESOLVED result re-run by a second agent from a
+      <em>clean</em> sandbox — clean because a stale approval or lockfile is the likeliest way a false
+      positive gets in. Seven results were overturned in verification.</p>
+
+      <div class="tw"><table>
+        <thead><tr><th>Question</th><th>Answer</th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Do plugin MCP servers ever start?</strong></td>
+            <td><strong>Yes — in every lane</strong>: <code>exec</code>, TUI and <code>serve</code>. The earlier negative was a trust-state artifact, not a lane restriction. The tool reaches the model as <code>mcp__plugin_&lt;pid&gt;_&lt;sid&gt;__&lt;tool&gt;</code>. The verifier added the control the original lacked — a bundle shipping a skill <em>and</em> a server, proving the plugin loaded while only the MCP capability was withheld.</td>
+            <td><span class="chip c-proven">confirmed</span></td>
+          </tr>
+          <tr>
+            <td><strong>Does skill routing negotiate?</strong></td>
+            <td><strong>Yes.</strong> "Negotiation" is a one-way per-invocation advertisement: the handler must declare <code>"outputCapabilities":["skills.v1"]</code>. Omitting it <em>is</em> the old <code>capability-not-negotiated</code>. <code>read_skill</code> resolves a routed, non-discovered skill by id and by path.</td>
+            <td><span class="chip c-inferred">corrected</span></td>
+          </tr>
+          <tr>
+            <td><strong>What is <code>settings.plugins</code>?</strong></td>
+            <td><strong>Not the desired-state config the plan hoped for.</strong> A real member typed <code>Option&lt;Box&lt;RawValue&gt;&gt;</code> that reaches exactly two first-party ids and cannot enable or disable anything on its own — it can only invalidate or conflict. Nothing in the product ever writes it.</td>
+            <td><span class="chip c-inferred">corrected</span></td>
+          </tr>
+          <tr>
+            <td><strong>The manifest contract</strong></td>
+            <td><code>compat.manifestDir</code> is <strong>not</strong> pinned to <code>.muse-plugin</code> — the same bytes validate clean in all three dot-directories with <em>different runtime semantics</em>. Package bounds: manifest 131,072 B, 4,096 filesystem entries, 16 path segments. <code>hooks</code> and <code>reminders</code> are closed to unknown keys; <code>skills</code>, <code>commands</code> and <code>mcpServers</code> silently accept them.</td>
+            <td><span class="chip c-inferred">corrected</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bundle size ceiling</strong></td>
+            <td>Per-package inventory budget <strong>4,094 units</strong>; <strong>256</strong> enabled plugins before overflow. But the binding constraint is the catalog: <strong>21,542 B</strong> usable, rising to <strong>31,602 B</strong> — a 48% gain — for one settings write, <code>muse skills disable bundled:*</code>.</td>
+            <td><span class="chip c-inferred">single source</span></td>
+          </tr>
+          <tr>
+            <td><strong>Canary drift</strong></td>
+            <td><strong>45 axes, two cosmetic differences</strong> across a full minor version and three release trains. Manifest <code>schemaVersion</code> still 1, exactly 5 capability families, 41 gates with zero default flips, MSP schema byte-identical, the 32,000 cap re-proven by independent binary search on each binary.</td>
+            <td><span class="chip c-proven">stable</span></td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3>Still open — and how to stay correct either way</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Open</th><th>Stay-correct rule</th></tr></thead>
+        <tbody>
+          <tr><td><strong>The model actually emitting an MCP <code>tools/call</code>.</strong> Everything short of the model's own emission is proven — spawn, handshake, <code>tools/list</code>, catalogued, canonical id in the active toolset.</td><td>Assume it works, but do not ship a bundle whose <em>only</em> value is an MCP tool until it is demonstrated. Cheap now: two other experiments independently drove real tool calls through a local mock provider with no Meta contact, and that harness already exists.</td></tr>
+          <tr><td><strong><code>run.context_slimming.skill_catalog_descriptions</code></strong> — found in the settings table, never executed. It is the mechanism that would buy the most catalog headroom.</td><td>Budget as if it does not exist: ≤21,542 B. Ship the proven <code>skills disable bundled:*</code> lever as the headroom story instead.</td></tr>
+          <tr><td><strong>Server-side <code>feature_config</code> allowlisting.</strong> Mechanism proven, behaviour never exercised — it needs one authenticated machine.</td><td>The largest unquantified risk to the product. Make <code>omm doctor</code> compare what actually composed in a live session against what was installed — never disk against disk.</td></tr>
+          <tr><td><strong>Every single-sourced number</strong> — the inventory budget, the per-class ceilings, the catalog anatomy, the memory root formula.</td><td>Convert them into CI fixtures that run on every channel poll. A fixture that reruns on each build <em>is</em> the second source.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="callout">
+        <span class="t">Fix before anything is published</span>
+        <p>The plugin id is <code>omm</code>, not <code>oh-my-musecode</code>. Two constraints converge:
+        the model-visible MCP namespace survives verbatim only to 31 characters, forcing
+        <code>len(plugin-id) + len(server-id) ≤ 18</code>; and the plugin id appears twice per catalog entry,
+        so shortening it buys ~22 B per entry — about three extra skills at fifty. Nine reserved ids install
+        "successfully", report valid and active, and contribute nothing. This is a schema decision and it
+        cannot be changed later.</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="built">
+      <h2><span class="n">10</span>Built</h2>
+      <p class="lede">The blueprint was executed. <code>omm</code> 0.1.0 exists as a single static Rust binary,
+      built and gated from a clean clone on 2026-09-03.</p>
+      <div class="verdict" style="border-color:var(--proven);background:var(--proven-soft);margin-bottom:22px">
+        <p class="claim" style="color:var(--proven);font-size:17px;margin-bottom:8px">Every phase passed its adversarial gate.</p>
+        <p style="margin-bottom:0">Each gate was a separate agent instructed to break the build with the release binary in
+        throwaway sandboxes. Gate 1 alone ran five rounds and closed roughly forty findings before converging;
+        what remained is recorded, with repro steps, rather than hidden.</p>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Measure</th><th class="num">Value</th><th>How it was checked</th></tr></thead>
+        <tbody>
+          <tr><td>Tests in the gate</td><td class="num">493</td><td><code>scripts/gate.sh</code>: fmt, clippy with warnings denied, every crate, from a clean clone</td></tr>
+          <tr><td>End-to-end scenarios</td><td class="num">36</td><td>Fresh HOME per scenario against the pinned Muse binary. Includes install → uninstall byte-and-mode identical for both install modes, staged conflicts on update, every doctor check both ways, interrupted installs, linked directories, profile round-trips, the MCP round-trip through a scripted model, memory seeding, routing enable/disable</td></tr>
+          <tr><td>Doctor checks</td><td class="num">16</td><td>Each names why its condition is silent at session time and prints the exact fix command</td></tr>
+          <tr><td>Skills shipped</td><td class="num">35</td><td>Two independent authors per skill, a judge per skill, validated by the host; catalog cost measured live at 13,264 B of the 21,542 B budget (13,196 B of 27,168 B under the default profile), all 35 descriptions surviving</td></tr>
+          <tr><td>Binary</td><td class="num">3.75 MB</td><td>One arm64 Mach-O; hook dispatch measured at p50 3.5–4.3 ms cold</td></tr>
+          <tr><td>Rust</td><td class="num">68,654 lines</td><td>Five crates: host, ledger, manifest, doctor, CLI</td></tr>
+          <tr><td>Known issues</td><td class="num">18</td><td>All non-blocking, each with a repro and an intended fix, in <code>docs/KNOWN_ISSUES.md</code></td></tr>
+        </tbody>
+      </table></div>
+      <h3>What shipped</h3>
+      <ul>
+        <li><strong>The ledger as the primitive.</strong> Install, update, reconcile, doctor and uninstall are one traversal over <code>omm.lock.json</code>. Every settings key carries both its prior value and the value omm wrote, so a user's later hand edit is preserved and named rather than clobbered.</li>
+        <li><strong>Three-way merge from the first release.</strong> Update stages a conflict next door and reports it; it never overwrites an edit and never freezes.</li>
+        <li><strong>Plan-then-execute install.</strong> Every path is resolved and contained before the first host mutation. A dotfile-manager symlink is refused up front with the flag that skips that category.</li>
+        <li><strong>The trust lifecycle owned end to end.</strong> Install approves each capability and verifies the line reads <code>trusted_enabled</code>; update is remove → install → re-approve as one transaction.</li>
+        <li><strong>An in-binary MCP server</strong> exposing the doctor and cost reports as tools, proven through a scripted model in both the exec and serve lanes.</li>
+        <li><strong>Opt-in skill routing</strong> behind the two experimental gates, with the combined-budget guard.</li>
+        <li><strong>A destructive-command hook</strong> that is documented as a heuristic, not a security boundary, and that fails open at the process level while answering deny for the cases it recognises.</li>
+      </ul>
+      <h3>Against the seven rival frameworks</h3>
+      <p>A row-by-row parity audit (<code>research/ohmy/01-PARITY.md</code>, 162 distinct capabilities merged
+      from 522 rival rows) answers the natural question honestly: <strong>no, omm does not ship everything
+      they ship.</strong> 61 rows are HAVE, 39 PARTIAL (the same capability with far less content: no agent
+      roster against their 7–28, 3 commands against 7–77, 3 hooks against 6–56), 36 are buildable gaps, 23
+      were struck by design (Muse ships subagents and workflows natively; no in-process plugins; no
+      enterprise tier), and 3 are impossible on Muse (statusline, output styles, per-skill tool grants).
+      Nine capabilities appear in omm and in none of the seven: the byte-and-mode-identical uninstall
+      asserted in CI, measured rather than estimated context cost, the host-drift self-test, the doctor that
+      compares a live session against what was installed, the declarative reminder, the launcher shim that
+      refuses prompt smuggling, the offline scripted-model harness, lint through the host's own validators,
+      and ledger-before-write.</p>
+      <h3>Tracking the host</h3>
+      <p>Muse stable moved to 1.0.3-R2198.1 while this was being built. The self-test caught it: one new
+      experimental gate and one new effort value, 33 other axes byte-identical. Host facts now carry a
+      <code>since</code> build tag, so the older pinned build reports the missing gate as OLDER-BUILD rather
+      than a failure, an unlisted gate still fails, and CI runs the gate against both builds. The audit also
+      found a documented hook kill switch that the dispatcher never read — the exact inert-flag pattern the
+      ecosystem survey had criticised in a rival — now enforced and locked by a test.</p>
+      <h3>Not done</h3>
+      <ul>
+        <li>No public release yet. The install script's base URL is a placeholder until a repository and a tagged release exist; only the arm64 macOS binary has been built.</li>
+        <li>The tri-manifest projections to the other two plugin formats are generated and committed but have not been exercised inside those hosts.</li>
+        <li>The server-side allowlist risk from section 04 still needs one authenticated machine to observe.</li>
+      </ul>
+    </section>
+
+    <!-- 11 -->
+    <section id="method">
+      <h2><span class="n">11</span>Method</h2>
+      <p>Three orchestrated agent workflows, 74 agents, 15M tokens, 5,669 tool calls.</p>
+      <ul>
+        <li><strong>Host teardown.</strong> Twelve subsystems, one agent each, working from the shipped
+        <code>aarch64-macos</code> binary — checksum-verified against Meta's release manifest and run in a
+        sandboxed <code>HOME</code> with auto-update disabled. Findings come from running the binary, from
+        Rust panic metadata that leaks the fbsource crate tree, and from string runs read at named file
+        offsets. The TUI could not be driven without a pty that answers its OSC and cursor-position probes,
+        so one was written.</li>
+        <li><strong>Rival teardown.</strong> Four discovery lenses — GitHub name patterns, content and topics,
+        package registries, and Chinese-language community sources — produced 134 unique candidates, of which
+        14 were cloned and read at source level.</li>
+        <li><strong>Verification.</strong> Every report was handed to a second agent instructed to refute it:
+        re-run the commands, re-fetch the star counts, re-count the files. Twelve of twelve host dimensions
+        returned <span class="chip c-proven">mostly solid</span>; none returned shaky. Refuted claims were
+        struck rather than softened, and reconstructed schemas were checked field-by-field against the
+        binary — inventing field names from adjacent string literals is the characteristic failure mode of
+        this kind of work.</li>
+      </ul>
+      <p>Nothing was authenticated, no prompt was sent to Meta's API, and nothing outside a scratch directory
+      was written. Claims are marked <span class="chip c-proven">proven</span> only where a command reproduces
+      them; everything else is marked <span class="chip c-inferred">inferred</span> and listed under unknowns.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Muse Code 1.0.1-R2006.1 · aarch64-macos · sha256 b9c7f9ba…c56c54a4 · observed 2026-09-01/02.
+    Findings describe one build of a product that auto-updates hourly and whose canary channel is already a
+    minor version ahead. Re-run the extension-point table against each release.</p>
+  </footer>
+
+</div>

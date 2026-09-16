@@ -1,0 +1,8 @@
+{
+  "id": "omm-stop",
+  "event": "Stop",
+  "command": ["omm", "hook", "stop"],
+  "timeoutMs": 2000,
+  "statusMessage": "omm: verify nudge",
+  "async": false
+}

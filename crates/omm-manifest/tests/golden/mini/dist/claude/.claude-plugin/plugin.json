@@ -1,0 +1,13 @@
+{
+  "name": "oh-my-musecode",
+  "version": "0.1.0",
+  "description": "omm fixture bundle.",
+  "skills": [
+    "./skills/omm-alpha",
+    "./skills/omm-beta"
+  ],
+  "commands": [
+    "./commands/omm-cmd.md"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

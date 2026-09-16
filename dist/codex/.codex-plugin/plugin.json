@@ -1,0 +1,10 @@
+{
+  "name": "oh-my-musecode",
+  "version": "1.0.0",
+  "description": "oh-my-musecode: a curated content bundle, thin CLI and git marketplace for Meta Muse Code.",
+  "interface": {
+    "displayName": "oh-my-musecode"
+  },
+  "skills": "skills",
+  "mcpServers": ".mcp.json"
+}

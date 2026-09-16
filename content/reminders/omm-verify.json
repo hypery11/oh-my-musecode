@@ -1,0 +1,242 @@
+{
+  "id": "omm-verify-nudge",
+  "path": "reminders/omm-verify.md",
+  "enabledDefault": false,
+  "tools": [
+    "read_file"
+  ],
+  "blocking": false,
+  "defaultPriority": "normal",
+  "maxPriority": "normal",
+  "reasoningEffort": "low",
+  "context": {
+    "conversation": {
+      "mode": "bounded",
+      "maxTokens": 6000
+    }
+  },
+  "decision": {
+    "version": 1,
+    "envelope": {
+      "version": 1,
+      "template": "<omm-reminder>\n{text}\n</omm-reminder>"
+    },
+    "deliveryRole": "developer",
+    "fields": [
+      {
+        "name": "text",
+        "description": "One or two imperative sentences naming the exact check to run before the completion claim stands.",
+        "requirement": "remind",
+        "shape": {
+          "type": "string",
+          "minBytes": 1,
+          "maxBytes": 600
+        }
+      }
+    ],
+    "bodyTemplate": {
+      "text": "{text}",
+      "slots": [
+        {
+          "name": "text",
+          "source": {
+            "field": "text"
+          },
+          "escape": "xml",
+          "fallback": ""
+        }
+      ],
+      "maxBytes": 65536
+    },
+    "validators": [],
+    "proposal": {
+      "remind": {
+        "body": {
+          "renderedBody": true
+        },
+        "kind": {
+          "literal": "general"
+        },
+        "subject": {
+          "literal": "general"
+        },
+        "reason": {
+          "literal": "reminder_requested"
+        },
+        "requestedPriority": {
+          "effective": "defaultPriority"
+        },
+        "effectivePriority": {
+          "effective": "clampedPriority"
+        },
+        "visibleForSteps": {
+          "literal": 1
+        },
+        "rejection": {
+          "literal": null
+        },
+        "memoryEvidence": {
+          "literal": []
+        },
+        "skillEvidence": {
+          "literal": null
+        }
+      },
+      "none": {
+        "body": {
+          "literal": ""
+        },
+        "kind": {
+          "literal": "general"
+        },
+        "subject": {
+          "literal": "general"
+        },
+        "reason": {
+          "literal": "none"
+        },
+        "requestedPriority": {
+          "effective": "defaultPriority"
+        },
+        "effectivePriority": {
+          "effective": "clampedPriority"
+        },
+        "visibleForSteps": {
+          "literal": 1
+        },
+        "rejection": {
+          "literal": "no_reminder"
+        },
+        "memoryEvidence": {
+          "literal": []
+        },
+        "skillEvidence": {
+          "literal": null
+        }
+      },
+      "invalidPayload": {
+        "body": {
+          "inputError": true
+        },
+        "kind": {
+          "literal": "general"
+        },
+        "subject": {
+          "literal": "general"
+        },
+        "reason": {
+          "literal": "invalid_payload"
+        },
+        "requestedPriority": {
+          "effective": "defaultPriority"
+        },
+        "effectivePriority": {
+          "effective": "clampedPriority"
+        },
+        "visibleForSteps": {
+          "literal": 1
+        },
+        "rejection": {
+          "literal": "invalid_payload"
+        },
+        "memoryEvidence": {
+          "literal": []
+        },
+        "skillEvidence": {
+          "literal": null
+        }
+      },
+      "roundEnded": {
+        "body": {
+          "literal": ""
+        },
+        "kind": {
+          "literal": "general"
+        },
+        "subject": {
+          "literal": "general"
+        },
+        "reason": {
+          "literal": "round_ended"
+        },
+        "requestedPriority": {
+          "effective": "defaultPriority"
+        },
+        "effectivePriority": {
+          "effective": "clampedPriority"
+        },
+        "visibleForSteps": {
+          "literal": 1
+        },
+        "rejection": {
+          "literal": "round_ended"
+        },
+        "memoryEvidence": {
+          "literal": []
+        },
+        "skillEvidence": {
+          "literal": null
+        }
+      },
+      "syntheticFailure": {
+        "body": {
+          "literal": ""
+        },
+        "kind": {
+          "literal": "general"
+        },
+        "subject": {
+          "literal": "general"
+        },
+        "reason": {
+          "literal": "synthetic_failure"
+        },
+        "requestedPriority": {
+          "effective": "defaultPriority"
+        },
+        "effectivePriority": {
+          "effective": "clampedPriority"
+        },
+        "visibleForSteps": {
+          "literal": 1
+        },
+        "rejection": {
+          "literal": "invalid_payload"
+        },
+        "memoryEvidence": {
+          "literal": []
+        },
+        "skillEvidence": {
+          "literal": null
+        }
+      },
+      "validatorRejections": {}
+    },
+    "lifecycle": {
+      "seenKey": "ordinary",
+      "eotProgressGate": "notApplicable",
+      "failureFallback": "none",
+      "installBudget": "roster"
+    },
+    "limits": {
+      "declarationBytes": 65536,
+      "customFields": 64,
+      "fieldNameBytes": 64,
+      "descriptionBytes": 1024,
+      "objectDepth": 4,
+      "objectFields": 32,
+      "arrayItems": 64,
+      "submittedJsonBytes": 262144,
+      "scalarStringBytes": 65536,
+      "templateBytes": 16384,
+      "slots": 64,
+      "renderedBodyBytes": 65536,
+      "memoryAdmissionReads": 64,
+      "memoryAdmissionLinesPerRead": 2000,
+      "memoryAdmissionExaminedBytesPerRead": 100000,
+      "memoryAdmissionReturnedBytesPerRead": 100000,
+      "memoryAdmissionExaminedBytesPerDecision": 6400000,
+      "memoryAdmissionReturnedBytesPerDecision": 6400000
+    }
+  }
+}

@@ -1,41 +1,158 @@
+# ci — the gate on every push and pull request, and a daily poll of the Muse
+# release channel (ARCHITECTURE.md R15: never gate on the version number, probe
+# behaviour on every channel poll).
+#
+# gate:      fmt → clippy → shellcheck → fetch the PINNED host (cached by version)
+#            → scripts/gate.sh → `omm build --check` (the generated package and the
+#            three catalogs match the committed ones).
+# hostcheck: on the schedule and by hand — ask the channel what it serves now, fetch
+#            THAT binary (cached by its version), run the P0/P1 tables of
+#            docs/host-reality.md against it (crates/omm-host/tests/hostcheck.rs),
+#            then the whole gate. A red run is the drift signal; a moved channel is
+#            announced as a notice next to the pinned version.
+#
+# The pinned host version is read from docs/host-data/muse-cli.json
+# (`observed_build`) — the one place it is recorded, never a copy here — and the
+# gate also runs against the previous stable build (`previous_stable_build`), so
+# a data row tagged `since` the newer build must pass as OLDER-BUILD on the older
+# one (hostcheck module docs; docs/host-reality.md "Release log").
+# Every host run is sandboxed: scripts/gate.sh's tests bring their own HOME/XDG
+# roots, and the `omm build --check` step points HOME/XDG at a throwaway directory.
+
 name: ci
+
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "23 5 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  MUSE_NO_AUTO_UPDATE: "1"
+
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  gate:
+    if: github.event_name != 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        # `pinned` = muse-cli.json observed_build, `previous` = previous_stable_build.
+        host: [pinned, previous]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Compile hooks
-        run: python3 -m py_compile hooks/*.py
-      - name: Check CLI
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: fmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: shellcheck
+        if: runner.os == 'Linux'
         run: |
-          node --check bin/omm.mjs
-          node --check bin/lib/fs.mjs
-          node --check bin/lib/skills.mjs
-          node --check bin/lib/engines.mjs
-      - name: Manifest sanity
-        run: python3 scripts/check-manifest.py
-      - name: Keyword hook
-        run: python3 tests/test_prompt_keywords.py
-      - name: Cwd resolution
-        run: python3 tests/test_cwd.py
-      - name: CLI engines
-        run: python3 tests/test_cli.py
-      - name: Stop chain
-        run: python3 tests/test_stop_chain.py
-      - name: Extra hooks
-        run: python3 tests/test_hooks_extra.py
+          shellcheck --version
+          shellcheck -s bash scripts/fetch-host.sh scripts/release.sh
+          shellcheck -s sh install.sh
+
+      - name: host version (${{ matrix.host }})
+        id: host
+        env:
+          HOST_ROLE: ${{ matrix.host }}
+        run: |
+          if [ "$HOST_ROLE" = previous ]; then
+            version="$(jq -r .previous_stable_build docs/host-data/muse-cli.json)"
+          else
+            version="$(jq -r .observed_build docs/host-data/muse-cli.json)"
+          fi
+          echo "$HOST_ROLE host: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: host binary (cached by version)
+        uses: actions/cache@v4
+        with:
+          path: .host
+          key: muse-${{ runner.os }}-${{ runner.arch }}-${{ steps.host.outputs.version }}
+
+      - name: fetch host
+        env:
+          MUSE_VERSION: ${{ steps.host.outputs.version }}
+        run: scripts/fetch-host.sh "$MUSE_VERSION"
+
+      - name: gate
+        env:
+          OMM_MUSE_BIN: ${{ github.workspace }}/.host/bin/muse-bin-${{ steps.host.outputs.version }}
+        run: scripts/gate.sh
+
+      - name: omm build --check
+        env:
+          OMM_MUSE_BIN: ${{ github.workspace }}/.host/bin/muse-bin-${{ steps.host.outputs.version }}
+        run: |
+          cargo build --release --locked -p omm
+          sandbox="$(mktemp -d)"
+          mkdir -p "$sandbox/home" "$sandbox/config" "$sandbox/data"
+          HOME="$sandbox/home" XDG_CONFIG_HOME="$sandbox/config" XDG_DATA_HOME="$sandbox/data" \
+            target/release/omm build --check "$GITHUB_WORKSPACE"
+
+  hostcheck:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: poll the channel
+        id: channel
+        run: |
+          current="$(scripts/fetch-host.sh --query)"
+          pinned="$(jq -r .observed_build docs/host-data/muse-cli.json)"
+          echo "channel: $current, pinned: $pinned"
+          echo "version=$current" >> "$GITHUB_OUTPUT"
+          if [ "$current" != "$pinned" ]; then
+            echo "::notice title=muse-stable moved::the channel serves $current; docs/host-data pins $pinned — re-measure docs/host-reality.md if this run is red"
+          fi
+
+      - name: host binary (cached by version)
+        uses: actions/cache@v4
+        with:
+          path: .host
+          key: muse-${{ runner.os }}-${{ runner.arch }}-${{ steps.channel.outputs.version }}
+
+      - name: fetch host
+        env:
+          MUSE_VERSION: ${{ steps.channel.outputs.version }}
+        run: scripts/fetch-host.sh "$MUSE_VERSION"
+
+      - name: hostcheck (P0 + P1 tables against the channel's binary)
+        env:
+          OMM_MUSE_BIN: ${{ github.workspace }}/.host/bin/muse-bin-${{ steps.channel.outputs.version }}
+        run: cargo test -p omm-host --test hostcheck -- --nocapture
+
+      - name: gate against the channel's binary
+        env:
+          OMM_MUSE_BIN: ${{ github.workspace }}/.host/bin/muse-bin-${{ steps.channel.outputs.version }}
+        run: scripts/gate.sh

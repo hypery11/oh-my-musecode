@@ -1,0 +1,21 @@
+[package]
+name = "omm-manifest"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Content model, catalog, package generators, lint, overlay resolution and the catalog byte budget."
+
+[dependencies]
+omm-host = { path = "../omm-host" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sha2.workspace = true
+hex.workspace = true
+walkdir.workspace = true
+# `generate::marketplace::package_digest` asks the host for the digest inside a
+# throwaway marketplace root and a throwaway XDG sandbox (never the user's).
+tempfile.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

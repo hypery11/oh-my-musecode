@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "plugins": [
+    {
+      "name": "oh-my-musecode",
+      "version": "0.1.0",
+      "description": "omm fixture bundle.",
+      "source": {
+        "source": "local",
+        "path": "dist/codex"
+      }
+    }
+  ]
+}

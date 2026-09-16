@@ -1,0 +1,8 @@
+{
+  "id": "omm-pre-compact",
+  "event": "PreCompact",
+  "command": ["omm", "hook", "pre-compact"],
+  "timeoutMs": 2000,
+  "statusMessage": "omm: compact log",
+  "async": false
+}

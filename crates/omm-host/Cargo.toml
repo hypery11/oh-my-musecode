@@ -1,0 +1,26 @@
+[package]
+name = "omm-host"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "The Muse binary as a dependency: paths, controlled invocation, behaviour probes, settings/trust writers and the golden host facts."
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sha2.workspace = true
+hex.workspace = true
+walkdir.workspace = true
+time.workspace = true
+# Not dev-only: `hostcheck::run()` (also behind `omm doctor --self-test`) needs a
+# throwaway HOME / XDG sandbox at runtime, never the user's real config root.
+tempfile.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+# `flock(2)` behind a safe wrapper (`std::fs::File::lock` needs Rust 1.89;
+# this crate forbids `unsafe`). Already a transitive dependency via tempfile.
+rustix = { version = "1", default-features = false, features = ["fs", "process", "std"] }
+
+[dev-dependencies]
+tempfile.workspace = true

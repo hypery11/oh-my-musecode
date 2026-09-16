@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "name": "oh-my-musecode",
+  "displayName": "oh-my-musecode",
+  "version": "1.0.0",
+  "description": "oh-my-musecode: a curated content bundle, thin CLI and git marketplace for Meta Muse Code.",
+  "compat": {
+    "source": "native",
+    "manifestDir": ".muse-plugin"
+  },
+  "capabilities": {
+    "skills": [
+      {
+        "id": "omm-self",
+        "path": "skills/omm-self/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-reflect",
+        "path": "skills/omm-reflect/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-tdd",
+        "path": "skills/omm-tdd/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-debug",
+        "path": "skills/omm-debug/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-review",
+        "path": "skills/omm-review/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-commit",
+        "path": "skills/omm-commit/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-refactor",
+        "path": "skills/omm-refactor/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-security",
+        "path": "skills/omm-security/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-verify",
+        "path": "skills/omm-verify/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-parallel",
+        "path": "skills/omm-parallel/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-skill-port",
+        "path": "skills/omm-skill-port/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-docs",
+        "path": "skills/omm-docs/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-pr",
+        "path": "skills/omm-pr/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-perf",
+        "path": "skills/omm-perf/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-migrate",
+        "path": "skills/omm-migrate/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-ci-fix",
+        "path": "skills/omm-ci-fix/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-release",
+        "path": "skills/omm-release/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-incident",
+        "path": "skills/omm-incident/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-api-design",
+        "path": "skills/omm-api-design/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-errors",
+        "path": "skills/omm-errors/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-observability",
+        "path": "skills/omm-observability/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-config",
+        "path": "skills/omm-config/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-concurrency",
+        "path": "skills/omm-concurrency/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-shell",
+        "path": "skills/omm-shell/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-rust",
+        "path": "skills/omm-rust/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-typescript",
+        "path": "skills/omm-typescript/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-python",
+        "path": "skills/omm-python/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-database",
+        "path": "skills/omm-database/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-frontend",
+        "path": "skills/omm-frontend/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-test-design",
+        "path": "skills/omm-test-design/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-legacy",
+        "path": "skills/omm-legacy/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-repo-map",
+        "path": "skills/omm-repo-map/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-cleanup",
+        "path": "skills/omm-cleanup/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-handoff",
+        "path": "skills/omm-handoff/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-containers",
+        "path": "skills/omm-containers/SKILL.md",
+        "enabledDefault": true
+      }
+    ],
+    "commands": [
+      {
+        "id": "omm-doctor",
+        "path": "commands/omm-doctor.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-cost",
+        "path": "commands/omm-cost.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-status",
+        "path": "commands/omm-status.md",
+        "enabledDefault": true
+      }
+    ],
+    "hooks": [
+      {
+        "id": "omm-session-start",
+        "event": "SessionStart",
+        "command": [
+          "omm",
+          "hook",
+          "session-start"
+        ],
+        "timeoutMs": 3000,
+        "statusMessage": "omm: session context",
+        "async": false
+      },
+      {
+        "id": "omm-guard",
+        "event": "PreToolUse",
+        "command": [
+          "omm",
+          "hook",
+          "guard"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: guarding destructive commands",
+        "async": false
+      },
+      {
+        "id": "omm-stop",
+        "event": "Stop",
+        "command": [
+          "omm",
+          "hook",
+          "stop"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: verify nudge",
+        "async": false
+      },
+      {
+        "id": "omm-skill-gate",
+        "event": "PreToolUse",
+        "command": [
+          "omm",
+          "hook",
+          "skill-gate"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: skill gate",
+        "async": false
+      },
+      {
+        "id": "omm-intent-gate",
+        "event": "PreToolUse",
+        "command": [
+          "omm",
+          "hook",
+          "intent-gate"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: intent gate",
+        "async": false
+      },
+      {
+        "id": "omm-subagent-start",
+        "event": "SubagentStart",
+        "command": [
+          "omm",
+          "hook",
+          "subagent-start"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: subagent log",
+        "async": false
+      },
+      {
+        "id": "omm-subagent-stop",
+        "event": "SubagentStop",
+        "command": [
+          "omm",
+          "hook",
+          "subagent-stop"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: subagent log",
+        "async": false
+      },
+      {
+        "id": "omm-pre-compact",
+        "event": "PreCompact",
+        "command": [
+          "omm",
+          "hook",
+          "pre-compact"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: compact log",
+        "async": false
+      }
+    ],
+    "mcpServers": [
+      {
+        "id": "doc",
+        "transport": "stdio",
+        "command": [
+          "omm",
+          "mcp"
+        ],
+        "enabledDefault": true
+      }
+    ],
+    "reminders": [
+      {
+        "id": "omm-verify-nudge",
+        "path": "reminders/omm-verify.md",
+        "enabledDefault": false,
+        "tools": [
+          "read_file"
+        ],
+        "blocking": false,
+        "defaultPriority": "normal",
+        "maxPriority": "normal",
+        "reasoningEffort": "low",
+        "context": {
+          "conversation": {
+            "mode": "bounded",
+            "maxTokens": 6000
+          }
+        },
+        "decision": {
+          "version": 1,
+          "envelope": {
+            "version": 1,
+            "template": "<omm-reminder>\n{text}\n</omm-reminder>"
+          },
+          "deliveryRole": "developer",
+          "fields": [
+            {
+              "name": "text",
+              "description": "One or two imperative sentences naming the exact check to run before the completion claim stands.",
+              "requirement": "remind",
+              "shape": {
+                "type": "string",
+                "minBytes": 1,
+                "maxBytes": 600
+              }
+            }
+          ],
+          "bodyTemplate": {
+            "text": "{text}",
+            "slots": [
+              {
+                "name": "text",
+                "source": {
+                  "field": "text"
+                },
+                "escape": "xml",
+                "fallback": ""
+              }
+            ],
+            "maxBytes": 65536
+          },
+          "validators": [],
+          "proposal": {
+            "remind": {
+              "body": {
+                "renderedBody": true
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "reminder_requested"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": null
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "none": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "none"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "no_reminder"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "invalidPayload": {
+              "body": {
+                "inputError": true
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "invalid_payload"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "invalid_payload"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "roundEnded": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "round_ended"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "round_ended"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "syntheticFailure": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "synthetic_failure"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "invalid_payload"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "validatorRejections": {}
+          },
+          "lifecycle": {
+            "seenKey": "ordinary",
+            "eotProgressGate": "notApplicable",
+            "failureFallback": "none",
+            "installBudget": "roster"
+          },
+          "limits": {
+            "declarationBytes": 65536,
+            "customFields": 64,
+            "fieldNameBytes": 64,
+            "descriptionBytes": 1024,
+            "objectDepth": 4,
+            "objectFields": 32,
+            "arrayItems": 64,
+            "submittedJsonBytes": 262144,
+            "scalarStringBytes": 65536,
+            "templateBytes": 16384,
+            "slots": 64,
+            "renderedBodyBytes": 65536,
+            "memoryAdmissionReads": 64,
+            "memoryAdmissionLinesPerRead": 2000,
+            "memoryAdmissionExaminedBytesPerRead": 100000,
+            "memoryAdmissionReturnedBytesPerRead": 100000,
+            "memoryAdmissionExaminedBytesPerDecision": 6400000,
+            "memoryAdmissionReturnedBytesPerDecision": 6400000
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+[
+ {"call":{"name":"mcp__plugin_omm_up__echo_upper","form":"ns__fn","arguments":{"text":"form ns__fn"}}},
+ {"call":{"name":"mcp__plugin_omm_up__echo_upper","form":"ns.fn","arguments":{"text":"form ns.fn"}}},
+ {"call":{"name":"mcp__plugin_omm_up__echo_upper","form":"fn+namespace","arguments":{"text":"form fn+namespace"},"expect":"reject"}},
+ {"call":{"name":"mcp__plugin_omm_up__echo_upper","form":"ns/fn","arguments":{"text":"form ns/fn"},"expect":"reject"}},
+ {"call":{"name":"mcp__plugin_omm_up__echo_upper","form":"fn","arguments":{"text":"form fn bare"},"expect":"reject"}},
+ {"text":"MOCK-FINAL-ANSWER name-forms probe done"}
+]

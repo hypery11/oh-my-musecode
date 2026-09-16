@@ -1,3 +1,8 @@
+> Superseded by 1.0.0. This matrix describes the 0.3.0 surface (19 role
+> skills, 19 commands, Node CLI, Python hooks), which 1.0.0 replaced — see
+> [MIGRATION.md](MIGRATION.md). Kept for the record; a fresh matrix lands once
+> the new surface settles (ROADMAP).
+
 > v0.3.0 ships file-based ralplan/interview/verify/autopilot engines + SKILL.md ask router. Still not a 1:1 port.
 
 # Oh My Muse Code v0.3.0 — feature completeness matrix

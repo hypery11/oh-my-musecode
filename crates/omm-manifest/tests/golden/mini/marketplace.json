@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "source": "local",
+  "plugins": [
+    {
+      "name": "oh-my-musecode",
+      "version": "0.1.0",
+      "install": {
+        "transport": "local-path",
+        "source": "plugins/oh-my-musecode"
+      },
+      "integrity": {
+        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "availability": {
+        "status": "available"
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "omm-intent-gate",
+  "event": "PreToolUse",
+  "command": ["omm", "hook", "intent-gate"],
+  "timeoutMs": 2000,
+  "statusMessage": "omm: intent gate",
+  "async": false
+}

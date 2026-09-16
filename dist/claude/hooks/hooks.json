@@ -1,0 +1,88 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook pre-compact",
+            "timeout": 2,
+            "statusMessage": "omm: compact log"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook guard",
+            "timeout": 2,
+            "statusMessage": "omm: guarding destructive commands"
+          },
+          {
+            "type": "command",
+            "command": "omm hook skill-gate",
+            "timeout": 2,
+            "statusMessage": "omm: skill gate"
+          },
+          {
+            "type": "command",
+            "command": "omm hook intent-gate",
+            "timeout": 2,
+            "statusMessage": "omm: intent gate"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook session-start",
+            "timeout": 3,
+            "statusMessage": "omm: session context"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook stop",
+            "timeout": 2,
+            "statusMessage": "omm: verify nudge"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook subagent-start",
+            "timeout": 2,
+            "statusMessage": "omm: subagent log"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook subagent-stop",
+            "timeout": 2,
+            "statusMessage": "omm: subagent log"
+          }
+        ]
+      }
+    ]
+  }
+}

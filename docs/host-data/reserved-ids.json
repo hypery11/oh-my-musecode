@@ -1,0 +1,79 @@
+{
+  "source": [
+    "research/experiments/settings-plugins.md",
+    "research/experiments/00-DECISION.md",
+    "research/experiments/plugin-contract.md",
+    "research/experiments/canary-diff.md",
+    "research/musecode/plugins.md",
+    "research/musecode/skills.md",
+    "research/musecode/tui-slash-theme.md",
+    "research/musecode/00-SYNTHESIS.md",
+    "research/musecode/hooks.md"
+  ],
+  "observed_build": "1.0.3-R2198.1",
+  "previous_stable_build": "1.0.1-R2006.1",
+  "also_verified_on": "1.0.1-R2006.1, 1.1.0-R2009.1 (identical). NOT canary 1.1.0-R2074.1: a 27th built-in tool `snooze_reminder` and a `reminder_roster` key on model_request_configured there — docs/experiments/stable-1.0.3-diff.md",
+  "counts": { "reserved_plugin_ids": 9, "reserved_marketplace_names": 1, "windows_reserved_stems": 22, "builtin_tool_names": 29 },
+  "count_reconciliation": "DISCREPANCY (resolved per later report): plugins.md §3.2 and plugin-contract.md D5 name 3 reserved plugin ids (`loop`, `muse-core`, `tbh-reminders`, from the bundled capability-examples.json; native-plugin-contract.md names only 2). settings-plugins.md Attack B installed a plugin under each candidate name and observed `bundled_plugin_id_reserved` for NINE; 00-DECISION row 21 / rule 4 and host-reality.md adopt 9. 9 taken.",
+  "id_grammar": {
+    "plugin_and_capability_ids": "^[a-z0-9][a-z0-9._-]{0,79}$ (1..80 ASCII bytes; uppercase → invalid-plugin-id)",
+    "skill_authoring_id": "[a-z0-9_-]+, not `.`/`..`, no `/` or `\\`, no leading `-`, not a Windows reserved stem (create-skill authoring rule; the loader itself accepts e.g. Kitchen_Sink)",
+    "agent_definition_name": "[a-z]+(-[a-z]+)* ≤128 B — one bad name kills the entire --agents overlay",
+    "workflow_name": "[a-z0-9][a-z0-9._-]* ≤64",
+    "marketplace_name": "validated (`marketplace name \\`X\\` is invalid`); grammar not measured",
+    "selected_skill_ids": "[a-z0-9._-]+"
+  },
+  "items": [
+    { "id": "skill-reminder",  "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": true,  "behaviour": "installs 'successfully', valid:true active:true, contributes nothing (bundled_plugin_id_reserved; effective_capabilities [] runtime_capabilities [])", "note": "Also the id of the `skill-reminder` reminder capability of tbh-reminders (stable id plugin:tbh-reminders:reminder:skill-reminder)." },
+    { "id": "goal-reminder",   "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": true,  "behaviour": "same" },
+    { "id": "memory-reminder", "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": false, "behaviour": "same", "note": "The corresponding tbh-reminders capability id is `memory` (NOT reserved as a plugin id)." },
+    { "id": "todo-reminder",   "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": false, "behaviour": "same" },
+    { "id": "verify-reminder", "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": false, "behaviour": "same" },
+    { "id": "scope-reminder",  "kind": "reserved-reminder-plugin-id", "wired_in_settings_plugins": false, "behaviour": "same" },
+    { "id": "tbh-reminders",   "kind": "bundled-plugin-name",         "wired_in_settings_plugins": null,  "behaviour": "same", "note": "The bundled 'First-party reminder agents.' plugin (6 reminders: memory, skill-reminder, todo-reminder, goal-reminder, verify-reminder, scope-reminder). Addable as a MARKETPLACE name (canary-diff row 34)." },
+    { "id": "loop",            "kind": "bundled-plugin-name",         "wired_in_settings_plugins": null,  "behaviour": "same", "note": "The bundled 'Built-in recurring-prompt command.' plugin providing /loop. Addable as a marketplace name." },
+    { "id": "muse-core",       "kind": "bundled-plugin-name",         "wired_in_settings_plugins": null,  "behaviour": "same", "note": "The bundled 'First-party Muse skills.' plugin (15 skills). Addable as a marketplace name." }
+  ],
+  "validator_note": "`muse plugins validate` and `muse plugins install` both accept these ids with zero diagnostics; the warning (`installed plugin \\`X\\` uses a reserved bundled plugin id; the bundled plugin wins and the installed plugin contributes nothing`) appears only in `plugins list` / `plugins inspect`. omm lint must reject them itself (R19).",
+  "reserved_marketplace_names": [
+    { "name": "tbh-curated", "behaviour": "`marketplace \\`tbh-curated\\` is reserved and cannot be added` (code invalid-plugin-package); also `… cannot be removed`. Provenance value `curated` exists; the registry is empty in both builds." }
+  ],
+  "not_reserved_as_marketplace_names": ["loop", "muse-core", "tbh-reminders"],
+  "bundled_reminder_capability_ids": {
+    "plugin": "tbh-reminders",
+    "ids": ["memory", "skill-reminder", "todo-reminder", "goal-reminder", "verify-reminder", "scope-reminder"],
+    "stable_id_form": "plugin:tbh-reminders:reminder:<id>",
+    "note": "Capability ids, not plugin ids; a third-party plugin may reuse them (e.g. plugin:zzcap:reminder:skill-reminder approved fine) but cannot reach settings.plugins through them."
+  },
+  "bundled_skill_ids": ["browser-app-delivery", "create-plugin", "create-skill", "doctor", "durable-test-collateral", "git", "greenfield-project-scaffolding", "grill", "import", "manage-settings", "migrate", "plan", "python-env", "read-session", "requirements-clarification", "resume-claude", "resume-codex", "table-fit", "taste", "workflow-authoring"],
+  "bundled_skill_ids_note": "Namespaced as bundled:<id>; a project/user skill with the same bare id shadows the bare selector, never the qualified id. See bundled-skills.json.",
+  "windows_reserved_stems": {
+    "enforced_by_validator": false,
+    "note": "Authoring/portability rule from the bundled create-skill body and the plugin contract's idRules.windowsReservedBasenames (case-folded basename before the first dot). Measured VALID by `plugins validate` for con, prn, aux, nul, com1, com9, lpt1, lpt9, con.txt, lpt1.log (plugin-contract D4). Keep the check in omm lint.",
+    "ids": ["con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9"]
+  },
+  "builtin_tool_names": {
+    "note": "The 26-tool active set of an echo session. A plugin hook's `compatibilityName` must not collide with a built-in tool matcher name (`compatibilityName \\`Bash\\` collides with a built-in tool matcher name`); `read_skill`, `write_todos`, `subagent_*` are not removable via run.toolset. Gated additions: monitor, web_fetch, request_user_input, shell, artifact, code_exec/code_wait, list_peer_sessions/send_session_message. Since 1.3.0-R3057.1 the default set grows by three (`work_stop` after `edit_memory`, `work_status` and `snooze_reminder` before `write_todos`; trusted order, echo session). `work_stop` cancels a runtime-owned work item, `work_status` reads one, `snooze_reminder` suppresses async reminders.",
+    "ids": ["workflow", "read_file", "search", "write_file", "edit_file", "read_memory", "add_memory", "edit_memory", "work_stop", "web_search", "bash", "bash_input", "cron_create", "cron_delete", "cron_list", "get_goal", "create_goal", "update_goal", "report_progress", "subagent_spawn", "subagent_status", "subagent_send_message", "subagent_wait", "subagent_read_result", "subagent_cancel", "read_skill", "work_status", "snooze_reminder", "write_todos"],
+    "mcp_tool_name_form": "mcp__plugin_<pid>_<sid>__<tool>; survives verbatim to 31 chars, 32+ rewritten to first-17 + \"__\" + 12 hex → len(pid) + len(sid) ≤ 18"
+  },
+  "namespace_prefixes": {
+    "skill_ids": { "bundled:": "built-in skills", "plugin:<pid>:": "plugin skills (no bare alias)", "bare": "project/user skills" },
+    "display_locators": ["bundled://muse-core/…", "plugin://<pid>/…", "builtin://compiled-registry", "$CONFIG_DIR/…", "$HOME/…"],
+    "capability_stable_ids": "plugin:<pid>:<kind>:<cap-id> with kind ∈ hook | reminder | mcp_server | agent_definition",
+    "permission_profiles": "built-ins carry a leading colon (:read-only, :ask-me, :auto-review, :unrestricted) so user ids can never collide"
+  },
+  "reserved_reminder_envelope_tags": {
+    "note": "A third-party reminder whose envelope template uses a host-reserved tag cannot be activated headlessly (only the TUI's elevated-approval path clears `reminder_envelope_elevated_approval`). omm must not generate one.",
+    "tags": ["<system-reminder>", "<continue> (retired: `envelope template uses retired reserved tag continue`)"]
+  },
+  "reserved_key_bindings": {
+    "note": "tui.keymap: `/ ! @ ?` are route characters — rejected for navigation.focus-plan; app.commands / app.shell / app.files must be exactly one printable character.",
+    "chars": ["/", "!", "@", "?"]
+  },
+  "reserved_hook_names": {
+    "note": "Native plugin hook fields `matcher`, `silent`, `description` are rejected; the Claude event `Setup` is recognised but never run; a hook `compatibilityName` is checked for cross-plugin ownership at install."
+  },
+  "telemetry_bucket": "Plugin-command and skill-shortcut dispatches are reported as the literal slash-command name `custom`.",
+  "omm_identity": { "plugin_id": "oh-my-musecode", "constraint": "len(\"oh-my-musecode\") + len(server-id) ≤ 18, so the MCP server id stays ≤ 4 chars (`doc`); every skill/command/capability id omm- prefixed and linted against the 9 reserved ids, the 15 bundled skill ids and the 39 slash-command rows (plus the 6 hidden built-ins and 9 aliases in slash-commands.json). Marketplace name `omm`, recorded in omm-manifest (`MARKETPLACE_NAME`)." }
+}

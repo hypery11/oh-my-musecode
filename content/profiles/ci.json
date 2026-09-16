@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "schema_version": 1,
+    "default_profile": "omm-ci",
+    "profiles": {
+      "omm-ci": {
+        "extends": ":ask-me",
+        "approval": "allow_all",
+        "reviewer": "none",
+        "network": { "mode": "restricted" }
+      }
+    }
+  },
+  "max_consecutive_stop_hook_continuations": 1,
+  "telemetry": { "enabled": false },
+  "feature_config": { "enabled": false },
+  "local_session_messaging": { "enabled": false },
+  "notifications": { "condition": "off" },
+  "run": {
+    "context_usage_message_enabled": false,
+    "context_slimming": {
+      "skill_catalog_descriptions": "first_sentence",
+      "full_skill_description_ids": ["bundled:git"],
+      "session_identity_enabled": false,
+      "excluded_tool_names": ["workflow"]
+    }
+  }
+}

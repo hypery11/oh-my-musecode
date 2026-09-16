@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "name": "oh-my-musecode",
+  "displayName": "oh-my-musecode",
+  "version": "0.1.0",
+  "description": "omm fixture bundle.",
+  "compat": {
+    "source": "native",
+    "manifestDir": ".muse-plugin"
+  },
+  "capabilities": {
+    "skills": [
+      {
+        "id": "omm-alpha",
+        "path": "skills/omm-alpha/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "omm-beta",
+        "path": "skills/omm-beta/SKILL.md",
+        "enabledDefault": true
+      }
+    ],
+    "commands": [
+      {
+        "id": "omm-cmd",
+        "path": "commands/omm-cmd.md",
+        "enabledDefault": true
+      }
+    ],
+    "hooks": [
+      {
+        "id": "omm-start",
+        "event": "SessionStart",
+        "command": [
+          "omm",
+          "hook",
+          "start"
+        ],
+        "timeoutMs": 2000,
+        "statusMessage": "omm: fixture",
+        "async": false
+      }
+    ],
+    "mcpServers": [],
+    "reminders": [
+      {
+        "id": "omm-nudge",
+        "path": "reminders/omm-nudge.md",
+        "enabledDefault": false,
+        "tools": [
+          "read_file"
+        ],
+        "blocking": false,
+        "decision": {
+          "version": 1,
+          "envelope": {
+            "version": 1,
+            "template": "<omm-reminder>\n{text}\n</omm-reminder>"
+          },
+          "deliveryRole": "developer",
+          "fields": [
+            {
+              "name": "text",
+              "description": "Reminder body text.",
+              "requirement": "remind",
+              "shape": {
+                "type": "string",
+                "minBytes": 1,
+                "maxBytes": 2000
+              }
+            }
+          ],
+          "bodyTemplate": {
+            "text": "{text}",
+            "slots": [
+              {
+                "name": "text",
+                "source": {
+                  "field": "text"
+                },
+                "escape": "xml",
+                "fallback": ""
+              }
+            ],
+            "maxBytes": 65536
+          },
+          "validators": [],
+          "proposal": {
+            "remind": {
+              "body": {
+                "renderedBody": true
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "reminder_requested"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": null
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "none": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "none"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "no_reminder"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "invalidPayload": {
+              "body": {
+                "inputError": true
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "invalid_payload"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "invalid_payload"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "roundEnded": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "round_ended"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "round_ended"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "syntheticFailure": {
+              "body": {
+                "literal": ""
+              },
+              "kind": {
+                "literal": "general"
+              },
+              "subject": {
+                "literal": "general"
+              },
+              "reason": {
+                "literal": "synthetic_failure"
+              },
+              "requestedPriority": {
+                "effective": "defaultPriority"
+              },
+              "effectivePriority": {
+                "effective": "clampedPriority"
+              },
+              "visibleForSteps": {
+                "literal": 1
+              },
+              "rejection": {
+                "literal": "invalid_payload"
+              },
+              "memoryEvidence": {
+                "literal": []
+              },
+              "skillEvidence": {
+                "literal": null
+              }
+            },
+            "validatorRejections": {}
+          },
+          "lifecycle": {
+            "seenKey": "ordinary",
+            "eotProgressGate": "notApplicable",
+            "failureFallback": "none",
+            "installBudget": "roster"
+          },
+          "limits": {
+            "declarationBytes": 65536,
+            "customFields": 64,
+            "fieldNameBytes": 64,
+            "descriptionBytes": 1024,
+            "objectDepth": 4,
+            "objectFields": 32,
+            "arrayItems": 64,
+            "submittedJsonBytes": 262144,
+            "scalarStringBytes": 65536,
+            "templateBytes": 16384,
+            "slots": 64,
+            "renderedBodyBytes": 65536,
+            "memoryAdmissionReads": 64,
+            "memoryAdmissionLinesPerRead": 2000,
+            "memoryAdmissionExaminedBytesPerRead": 100000,
+            "memoryAdmissionReturnedBytesPerRead": 100000,
+            "memoryAdmissionExaminedBytesPerDecision": 6400000,
+            "memoryAdmissionReturnedBytesPerDecision": 6400000
+          }
+        }
+      }
+    ]
+  }
+}

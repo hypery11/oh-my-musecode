@@ -1,0 +1,8 @@
+{
+  "id": "omm-session-start",
+  "event": "SessionStart",
+  "command": ["omm", "hook", "session-start"],
+  "timeoutMs": 3000,
+  "statusMessage": "omm: session context",
+  "async": false
+}

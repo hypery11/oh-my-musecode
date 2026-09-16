@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "omm hook start",
+            "timeout": 2,
+            "statusMessage": "omm: fixture"
+          }
+        ]
+      }
+    ]
+  }
+}

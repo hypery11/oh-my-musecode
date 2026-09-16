@@ -1,0 +1,8 @@
+[
+ {"call":{"name":"mcp__plugin_omm_fifteencharsxxx__echo_upper","form":"ns__fn","arguments":{"text":"fifteen ns__fn (31-char namespace, verbatim)"}}},
+ {"call":{"name":"mcp__plugin_omm_fifteencharsxxx__echo_upper","form":"ns.fn","arguments":{"text":"fifteen ns.fn"}}},
+ {"call":{"name":"/^mcp__plugin_omm_s__[0-9a-f]{12}__echo_upper$/","form":"ns__fn","arguments":{"text":"sixteen ns__fn built from the REWRITTEN wire namespace"},"expect":"reject"}},
+ {"call":{"name":"/^mcp__plugin_omm_s__[0-9a-f]{12}__echo_upper$/","form":"ns.fn","arguments":{"text":"sixteen ns.fn built from the REWRITTEN wire namespace"}}},
+ {"call":{"raw_name":"mcp__plugin_omm_sixteencharsxxxx__echo_upper","arguments":{"text":"sixteen canonical id, never on the wire"}}},
+ {"text":"MOCK-FINAL-ANSWER rewritten-namespace probe done"}
+]

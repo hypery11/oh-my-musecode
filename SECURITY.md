@@ -3,7 +3,7 @@
 Report vulnerabilities **privately** via GitHub Security Advisories on this repository. Do not open a public issue with secrets, tokens, `auth.json`, or hook stdin dumps that may contain prompts.
 
 ## What this project does
-- A Muse Code plugin: markdown skills/commands plus local Python hooks.
+- A Muse Code plugin: markdown skills/commands plus hooks dispatched by the local `omm` binary.
 - Hooks read Muse stdin JSON and may write `.omm/` in the workspace.
 - There is **no** Meta API proxy and no cloud sidecar.
 

@@ -1,0 +1,33 @@
+{
+  "source": [
+    "research/musecode/config-paths.md §7.4 — EnterpriseDefaultsSettingsV1 has exactly 20 members; hooks/permissions/plugins/runtime_capabilities/agent_definitions/model_catalog/mcpServers are unknown_member",
+    "research/musecode/config-paths.md verification C4 (tui: keymap activated; terminal_background, prompt_hint_enabled, rules_import_offer_dismissed, foreign_context_notice_shown are unknown_member) and M5 (the enterprise key registry: run has 11 of the user's 13 fields, provider_retry 3 of 4, telemetry 6 of 9, endpoint_transport 3 of 9)",
+    "research/musecode/config-paths.md §7.3 — `field_not_activated` means the field exists in the schema but its gate is off in this build; a distinct signal from wrong_type",
+    "research/experiments/loose-ends.md §3.4 — wrong_type and semantic_invalid are reported before the activation gate, so field_not_activated implies the value passed type validation",
+    "live probe 2026-09-02 against 1.0.1-R2006.1: camelCase `mcpServers` → unknown_member, snake `mcp_servers` → valid; `tui.theme` → field_not_activated; wrong_type elsewhere in the same document wins over field_not_activated regardless of key order; unknown_member and field_not_activated lines carry no location"
+  ],
+  "observed_build": "1.3.0-R3057.1",
+  "plane": "defaults",
+  "envelope": { "schema_version": 1, "container": "settings" },
+  "accepted_members": [
+    "provider", "model", "reasoning_effort", "first_turn_minimal_effort_regex",
+    "max_consecutive_stop_hook_continuations", "run", "provider_retry", "tui", "context",
+    "endpoint_transport", "telemetry", "notifications", "mcp_servers", "feature_config",
+    "local_session_messaging", "agents", "context_compaction", "tools", "skills", "presets"
+  ],
+  "renames": { "mcpServers": "mcp_servers" },
+  "user_only_subkeys": {
+    "tui": ["terminal_background", "prompt_hint_enabled", "rules_import_offer_dismissed", "foreign_context_notice_shown"],
+    "provider_retry": ["max_attempts"],
+    "run": ["search_literal_fallback", "reminder_observers"],
+    "telemetry": ["client_cert", "client_key", "ca_bundle"],
+    "endpoint_transport": ["client_cert", "client_key", "ca_bundle", "http_headers", "env_http_headers", "allow_openai"]
+  },
+  "accept_outcomes": ["valid", "field_not_activated"],
+  "reject_outcomes": ["wrong_type", "semantic_invalid", "null_not_allowed", "duplicate_member", "trailing_content", "invalid_json", "missing_schema_version", "unsupported_schema_version", "skipped_oversize"],
+  "blind_outcomes": ["unknown_member"],
+  "notes": [
+    "The validator reports only the FIRST problem and prints no location for unknown_member / field_not_activated on 1.0.x; since 1.3.0-R3057.1 the verdict arrives as `enterprise_document_invalid: plane=… reason=field_not_activated location=…` (same meaning, now with a location), so omm validates one touched top-level key per document: an unknown_member answer then means the validator cannot see that key at all and the load probe (`muse skills list --source user --json` against a temp config root) is the remaining oracle.",
+    "Nested members of mcp_servers entries (McpServerDefaultsV1 has 6 of the user's 13 fields) are not enumerated here; an unknown_member for a projected `mcp_servers` document is handled by the same blind rule."
+  ]
+}

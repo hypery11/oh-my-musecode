@@ -1,0 +1,10 @@
+{
+  "name": "oh-my-musecode",
+  "version": "0.1.0",
+  "description": "omm fixture bundle.",
+  "interface": {
+    "displayName": "oh-my-musecode"
+  },
+  "skills": "skills",
+  "mcpServers": ".mcp.json"
+}

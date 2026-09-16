@@ -1,19 +1,17 @@
 # Roadmap
 
-## Wave 1 (this release)
-Plugin surface that passes `muse plugins validate`, role skills, orchestration commands, skill-gate + Ralph stop-chain, `.omm/`.
+## 1.0.0 (this release)
 
-## Wave 2 (landed in tree; bundled as 0.2.0)
-File-based `omm team` `ask` `hud` `wait` `mission` `wiki` `update`. Honest Muse-native team via `subagent_spawn` + `.muse/worktrees/`, not tmux.
-
-## Wave 3 (landed in tree for 0.3.0)
-File-based `omm ralplan` `interview` `ultragoal` `handoff` `skillify` `verify` `autopilot` `execute` `remember` `debug` `trace`. Slash-commands stay in-session interviewers.
+Rewrite: 35 `omm-*` skills, 3 commands, 8 binary-dispatched hooks, verify reminder, doc MCP server. Single-dependency-free `omm` binary via `install.sh`. Validated against Muse 1.3.0. Migration from 0.3.0 in docs/MIGRATION.md.
 
 ## Later
-Richer verify evidence, richer notifications, more extras **only** when they map to Muse APIs.
+
+Richer verify evidence, richer notifications, more skills — only when they map to Muse APIs. A fresh feature matrix once the surface settles (docs/FEATURE-MATRIX.md still describes 0.3.0).
 
 ## Will not
+
 - Proxy Meta inference
-- Copy OMC/OMX skill text
+- Copy other oh-my-* skill text
 - Reimplement Muse `/loop` or `/compact`
+- Live tmux dashboard, statusline, output styles, remote ask transport (no host surface)
 - Occupy `@muse-code/*`

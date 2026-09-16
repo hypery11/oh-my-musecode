@@ -1,0 +1,9 @@
+{
+  "run": {
+    "context_slimming": {
+      "skill_catalog_descriptions": "first_sentence",
+      "full_skill_description_ids": ["bundled:git"],
+      "excluded_tool_names": []
+    }
+  }
+}

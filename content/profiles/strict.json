@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "schema_version": 1,
+    "default_profile": "omm-strict",
+    "profiles": {
+      "omm-strict": {
+        "extends": ":ask-me",
+        "approval": "prompt_unmatched",
+        "reviewer": "human"
+      }
+    }
+  },
+  "run": {
+    "context_slimming": {
+      "skill_catalog_descriptions": "full",
+      "full_skill_description_ids": ["bundled:git"],
+      "excluded_tool_names": []
+    }
+  }
+}

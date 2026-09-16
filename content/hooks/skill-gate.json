@@ -1,0 +1,8 @@
+{
+  "id": "omm-skill-gate",
+  "event": "PreToolUse",
+  "command": ["omm", "hook", "skill-gate"],
+  "timeoutMs": 2000,
+  "statusMessage": "omm: skill gate",
+  "async": false
+}

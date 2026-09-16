@@ -1,0 +1,172 @@
+{
+  "source": [
+    "research/musecode/cli-surface.md",
+    "research/musecode/plugins.md",
+    "research/musecode/skills.md",
+    "research/experiments/canary-diff.md",
+    "research/experiments/00-DECISION.md"
+  ],
+  "observed_build": "1.3.0-R3057.1",
+  "previous_stable_build": "1.0.3-R2198.1",
+  "also_verified_on": "1.0.1-R2006.1 (identical but for the `--reasoning-effort` value list: no `max`), 1.1.0-R2009.1 and 1.1.0-R2074.1 (muse-canary; R2074.1: no `max` either, `exec --max-tool-output-bytes` help gains `(0 or >=9)`) — docs/experiments/stable-1.0.3-diff.md 1.3.0-R3057.1 (new top-level `mcp`: OAuth login/logout for streamable-HTTP MCP servers) — docs/experiments/stable-1.3.0-diff.md",
+  "version_string": "Muse Code 1.3.0 (1.3.0-R3057.1)",
+  "version_string_previous": "Muse Code 1.0.3 (1.0.3-R2198.1)",
+  "counts": { "top_level_commands": 17, "advertised": 15, "gated": 1, "hidden": 1, "root_flags": 30, "skills_verbs": 10, "plugins_verbs": 12 },
+  "gated_rule": "`counts.gated` counts commands whose argv is REJECTED (exit 2) without their gate — `plugins` only (`gate_hard: true`). Four items carry a `gate` field: `schema` and `serve` sit behind MUSE_EXPERIMENTAL_SDK_ENABLED, which is default ON (they only disappear when it is set to 0/false/yes/\"\"), and `session-message` gates only its `list` verb (exit 1, not 2). verify_data holds counts.gated == items with gate_hard.",
+  "usage": ["muse [OPTIONS] [PROMPT]", "muse [OPTIONS] <COMMAND>"],
+  "unknown_token_rule": "There is NO unknown-command exit. An unrecognised first token is the [PROMPT] positional and starts a (billed) session; the outcome is 0/1 decided by workspace trust / TTY, not by the token. `omm run` must validate argv[0] against `argv_allowlist` (R20).",
+  "exit_codes": {
+    "0": "ok",
+    "1": "parsed, run failed (incl. ungated `session-message list`, `config validate` invalid, `init` on an existing AGENTS.md, unknown top-level token on a non-tty, hook block under `exec`)",
+    "2": "argv rejected — a parse error and a missing gate (`plugins` without MUSE_EXPERIMENTAL_PLUGINS) are indistinguishable; uniform across all five parsers incl. an unknown root flag",
+    "125": "internal PTY-gate mode killed by timeout (not a product surface; `hr::EXIT_PTY_GATE_TIMEOUT`). omm's own budget for a wedged host is `invoke::RUN_TIMEOUT_DEFAULT` / `RUN_TIMEOUT_LONG`: the host is killed and reported as `HostError::Timeout`, never waited for."
+  },
+  "argv_allowlist": ["resume", "exec", "config", "export", "trace", "skills", "sandbox", "schema", "serve", "session-message", "mcp", "auth", "login", "logout", "init", "plugins", "workflows"],
+  "root_positional_commands": ["resume"],
+  "root_flag_walk_rule": "Root flags may precede ONLY `resume` (`muse [OPTIONS] [resume <session-uuid>]`); any other command after a root flag is refused by the host (`invalid TUI options: unknown argument `exec``, exit 2). Every other bare token after the root flags is the [PROMPT] positional, `--` hands the rest of argv to it, and a lone `-` is a prompt too: `muse -- hi`, `muse --provider echo hi`, `muse --provider echo -- hi`, `muse -` and a flag-only argv (`muse --provider echo`, `muse -w`) all start the TUI (measured 2026-09-02, stdin=/dev/null: TUI escape sequences, exit 1 `Device not configured`). A `<VALUE>` flag consumes the next token. A `[<VALUE>]` flag consumes the next token ONLY when it is exactly one of its listed `values`: measured 2026-09-02 in a pty (git workspace, `--provider echo --yolo`), `muse -w off zebra` and `muse -w create zebra` take the mode and submit `zebra` as the prompt, `muse -w zebra` creates the worktree (bare `-w` = create) AND submits `zebra` (8 screen mentions, 5 in session.jsonl; `-w` alone: 0), `muse -w OFF` leaves `OFF` to the prompt (case-sensitive), while an attached `-w=hi` / `--worktree=hi` is exit 2 `invalid value 'hi' for '--worktree'` with no session. `--version` anywhere in argv pre-empts the whole parse (`muse hi --version`, `muse -w hi --version` and `muse -w off --version` all print the version, exit 0), so an exit-0 `--version` run proves nothing about value consumption.",
+  "dispatcher_literal": "execconfigexporttraceloginlogoutsession-messageskillssandboxschemaservepluginsworkflows (resume is a root positional; init/auth live in adjacent literals)",
+  "parser_families": {
+    "clap": ["root/TUI", "resume", "trace inspect", "auth set"],
+    "hand-rolled-A": ["exec", "skills", "init", "session-message"],
+    "hand-rolled-B": ["plugins"],
+    "hand-rolled-C": ["serve", "schema"],
+    "hand-rolled-D": ["export", "workflows", "config", "trace", "login", "logout"],
+    "note": "`--help` works at depth 1 and 2 only. zsh gotcha: use ${=c} to word-split a subcommand string."
+  },
+  "items": [
+    { "name": "resume",          "advertised": true,  "gate": null, "hidden": false, "summary": "Resume a previous session (--last or <session-uuid>)", "help_first_line": "muse resume — resume a previous session", "notes": "Accepts the entire root flag set on either side of `resume`. Non-interactive needs --last or a uuid." },
+    { "name": "exec",            "advertised": true,  "gate": null, "hidden": false, "summary": "Run one prompt non-interactively (headless)", "help_first_line": "muse exec — run one prompt non-interactively (headless)", "notes": "--json emits MSP durable records as JSONL. Three undocumented flags: --agents, --eval-context-compaction-strategy, --eval-workflow-api-version; --api-key is recognised only to refuse it." },
+    { "name": "config",          "advertised": true,  "gate": null, "hidden": false, "summary": "Validate enterprise configuration documents", "help_first_line": "Usage: muse config validate --plane <defaults|policy> --file <path>", "notes": "Verbs: validate, status. Any other token reprints usage. NOT gated by MUSE_EXPERIMENTAL_ENTERPRISE_CONFIG." },
+    { "name": "export",          "advertised": true,  "gate": null, "hidden": false, "summary": "Export a session transcript to a file", "help_first_line": "usage: muse export [--session <id|path>] [--last] [--out <file>] [--redacted]", "notes": "Exactly four flags + --help. export_schema_version 1. Succeeds even with a malformed settings.json." },
+    { "name": "trace",           "advertised": true,  "gate": null, "hidden": false, "summary": "Inspect a recorded session or run trace", "help_first_line": "muse trace — inspect a recorded Muse Code trace", "notes": "Only verb: inspect (--fixture | --session-log | --run-log | --task-log, --run-id, --all-runs, --render-mode compact|default|verbose, --include-positions, --max-text-bytes, --format text|json)." },
+    { "name": "skills",          "advertised": true,  "gate": null, "hidden": false, "summary": "List, inspect, enable, or disable skills", "help_first_line": "usage: muse skills list …", "notes": "See verbs.skills." },
+    { "name": "sandbox",         "advertised": true,  "gate": null, "hidden": false, "summary": "Check or set up the OS sandbox", "help_first_line": "usage: muse sandbox windows check", "notes": "Verbs: windows check | windows setup — `windows` is the only subcommand; `check` runs on macOS and reports windows_host_required (exit 1)." },
+    { "name": "schema",          "advertised": true,  "gate": "MUSE_EXPERIMENTAL_SDK_ENABLED (default ON)", "hidden": false, "summary": "Export the MSP wire schema (JSON Schema or TypeScript)", "help_first_line": "muse schema — export the MSP wire schema embedded in this binary", "notes": "Verbs: generate-json-schema --out DIR [--experimental], generate-ts --out DIR [--experimental]. Fingerprints are build-time constants." },
+    { "name": "serve",           "advertised": true,  "gate": "MUSE_EXPERIMENTAL_SDK_ENABLED (default ON)", "hidden": false, "summary": "Serve an MSP session host over stdio", "help_first_line": "muse serve — serve an MSP session host over stdio", "notes": "Flags: --no-session-log, --disable-sandbox, --sandbox-network <MODE>, --disable-write, --disable-shell, --trust-workspace. --listen parsed and refused (deferred post-v1); --yolo/--approval-* refused (approval is on the wire). Requires settings.provider; MSP runs no hooks and registers no tools." },
+    { "name": "session-message", "advertised": true,  "gate": "MUSE_EXPERIMENTAL_EXTERNAL_AGENT_INGRESS for `list` (exit 1 ungated)", "hidden": false, "summary": "List or send cross-session messages", "help_first_line": "usage: muse session-message <command> [options]", "notes": "Verbs: list [--json]; send --target <uuid-or-name> [--in-reply-to <token>] [--json] — `send` is stubbed (`not implemented in this build`)." },
+    { "name": "mcp",             "advertised": true,  "gate": null, "hidden": false, "summary": "Log in to or out of an MCP server (OAuth)", "help_first_line": "muse mcp — log in to or out of an MCP server (OAuth)", "notes": "Verbs: login <server> [--oauth-client-id <CLIENT_ID>] [--scope <SCOPE>]... [--headless] [--callback-port <PORT>]; logout <server> — `<server>` is a streamable-HTTP entry under mcpServers in settings.json. New in 1.3.0-R3057.1." },
+    { "name": "auth",            "advertised": true,  "gate": null, "hidden": false, "summary": "Store provider API credentials", "help_first_line": "muse auth — store provider API credentials", "notes": "Only verb: set [--provider meta] --api-key-stdin. Secrets never accepted as argv. Store: $CONFIG_DIR/auth.json or macOS Keychain (TBH_CREDENTIAL_BACKEND)." },
+    { "name": "login",           "advertised": true,  "gate": null, "hidden": false, "summary": "Log in to a provider", "help_first_line": "usage: muse login", "notes": "Takes no arguments. NEVER run by omm (contacts Meta)." },
+    { "name": "logout",          "advertised": true,  "gate": null, "hidden": false, "summary": "Remove stored provider credentials", "help_first_line": "usage: muse logout", "notes": "Takes no arguments." },
+    { "name": "init",            "advertised": true,  "gate": null, "hidden": false, "summary": "Scaffold agent config in this workspace", "help_first_line": "usage: muse init [--dry-run] [--force]", "notes": "Writes exactly one file, AGENTS.md; re-run without --force exits 1. Scaffolds nothing for hooks/skills/plugins." },
+    { "name": "plugins",         "advertised": false, "gate": "MUSE_EXPERIMENTAL_PLUGINS=1", "gate_hard": true, "hidden": false, "summary": "Validate and manage plugin bundles", "help_first_line": "usage: muse plugins <command>", "notes": "Ungated: prints `plugins are not available in this build`, exit 2. Appears in `muse --help` only with the gate. Runtime composition of installed plugins is ungated. See verbs.plugins." },
+    { "name": "workflows",       "advertised": false, "gate": null, "hidden": true,  "summary": "List/save named workflows; QA-only run/recover lane", "help_first_line": "usage: muse workflows list", "notes": "Never listed in any --help (self-described as unadvertised); always live; independent of MUSE_EXPERIMENTAL_WORKFLOW_TOOL. Verbs: list; save <name> --from <script.js> [--scope project|user] [--overwrite]; run <entry> --headless-qa [--token-budget <tokens|Nk|Nm>] [--live-auto-qa|--prompt-live-smoke]; recover <workflow-run-id> [--apply] (--session-log <path>|--session <id>). Project-scope workflows are never listed (no --trust-workspace flag); ship at --scope user." }
+  ],
+  "root_flags": {
+    "count": 30,
+    "short_flags": { "root": ["-h", "-V", "-w"], "exec": ["-h", "-w"] },
+    "items": [
+      { "flag": "-h, --help" }, { "flag": "-V, --version" },
+      { "flag": "--agents <JSON>", "notes": "one ephemeral agent-definition overlay; not on exec's help but accepted there" },
+      { "flag": "--provider <MODE>", "values": "echo | meta", "default": "meta" },
+      { "flag": "--preset <NAME>", "values": "native-basic, miniswe, or settings.presets.<name>" },
+      { "flag": "--model <MODEL>" },
+      { "flag": "--reasoning-effort <EFFORT>", "values": "none|minimal|low|medium|high|xhigh|max|ultra", "default": "high", "values_since": { "max": "1.0.3-R2198.1" }, "notes": "Value check first, provider check second: a value outside the list is exit 2 `unsupported reasoning effort `<v>`; expected <list>` (hr::REASONING_EFFORT_UNSUPPORTED_MESSAGE); a listed value with `--provider echo` is exit 2 `--reasoning-effort is not supported with --provider echo` (hr::REASONING_EFFORT_ECHO_REFUSED_MESSAGE) — the second message proves the value was accepted, which is how hostcheck `cli/reasoning-effort/<value>` measures the list offline. `max` accepted since 1.0.3-R2198.1 (1.0.1 and canary 1.1.0-R2074.1: `unsupported reasoning effort `max``); in settings.json 1.0.1 prints `tbh: ignoring invalid reasoning_effort \"max\" in settings` and 1.0.3 accepts it silently with the same 8-block run context as high/xhigh; the enterprise defaults plane rejects `settings.reasoning_effort: \"max\"` as `semantic_invalid` on every build (1.0.3 drops the `location=` suffix from that message). `ultra` is listed on every build but gated since 1.0.3-R2198.1 (gates.json ultra_reasoning_effort)." },
+      { "flag": "--base-url <URL>", "default": "https://api.meta.ai/v1" },
+      { "flag": "--image <PATH>" },
+      { "flag": "--workspace <PATH>", "default": "cwd" },
+      { "flag": "-w, --worktree [<MODE>]", "values": "off|create|existing", "default": "off", "notes": "A detached token is taken as the mode only when it is exactly one of the values (`-w off`); bare `-w` means create; any other detached token is the [PROMPT] (`-w hi` starts the TUI and submits `hi`), while `-w=hi` is exit 2 — see root_flag_walk_rule" },
+      { "flag": "--worktree-base <REF>", "default": "HEAD" },
+      { "flag": "--worktree-existing <PATH>" },
+      { "flag": "--parallel-tool-calls", "notes": "meta provider only" },
+      { "flag": "--no-parallel-tool-calls" },
+      { "flag": "--subagent-worktree-isolation", "notes": "compatibility no-op, defaults on" },
+      { "flag": "--approval-mode <MODE>", "values": "untrusted|on-request|never", "default": "on-request" },
+      { "flag": "--permission-profile <ID>", "notes": "unsatisfiable in 1.0.1 (execution.permission_profiles is field_not_activated)" },
+      { "flag": "--approval-judge <off|on>", "default": "on" },
+      { "flag": "--no-session-log" },
+      { "flag": "--echo-delay-ms <MS>", "notes": "echo provider only" },
+      { "flag": "--yolo", "notes": "disable approval AND sandbox + trust workspace for this run" },
+      { "flag": "--trust-workspace", "notes": "loads this workspace's skills/rules/hooks for the run; does NOT persist trust" },
+      { "flag": "--disable-approval" }, { "flag": "--disable-sandbox" },
+      { "flag": "--sandbox-network <MODE>", "values": "restricted|enabled|proxy-only", "default": "proxy-only" },
+      { "flag": "--disable-write" }, { "flag": "--disable-shell" }, { "flag": "--enable-shell-tool" },
+      { "flag": "--last", "notes": "only meaningful with resume" }
+    ],
+    "internal_root_flags": ["--internal-claude-channels-sidecar-v1 (exit 0, live JSON-RPC/MCP server on stdio)", "--internal-claude-channels-live-smoke-host-v1 (exit 1; execs the real `claude` binary)"]
+  },
+  "verbs": {
+    "skills": {
+      "count": 10,
+      "usage": [
+        "muse skills list [--source all|user|project|built-in|plugin] [--enabled-only] [--workspace <path>] [--trust-workspace] [--json]",
+        "muse skills inspect <skill-id-or-path> [--source all|user|project|built-in|plugin] [--workspace <path>] [--trust-workspace] [--json]",
+        "muse skills enable <skill-id-or-path> --scope user|project|built-in|plugin [--workspace <path>] [--trust-workspace] [--json]",
+        "muse skills user-only <skill-id-or-path> --scope user|project|built-in|plugin [--workspace <path>] [--trust-workspace] [--json]",
+        "muse skills disable <skill-id-or-path> --scope user|project|built-in|plugin [--workspace <path>] [--trust-workspace] [--json]",
+        "muse skills validate <path> [--json]",
+        "muse skills install <path> [--scope user] [--name NAME] [--force] [--json]",
+        "muse skills import --from claude|codex [--scope user] [--dry-run] [--force] [--json]",
+        "muse skills update <skill-id> [--json]",
+        "muse skills uninstall <skill-id> [--keep-files] [--json]"
+      ],
+      "items": [
+        { "verb": "list",      "flags": ["--source all|user|project|built-in|plugin", "--enabled-only", "--workspace <path>", "--trust-workspace", "--json", "--scope user|project|built-in|plugin (undocumented, validated, inert)"], "notes": "TSV: NAME SCOPE ACTIVATION DESCRIPTION PATH. --json: {skills:[{id,name,display_name,description,short_description,scope,source:{type},path,activation,diagnostics,provenance,context_cost:{startup_bytes,startup_estimated_tokens,invoke_bytes,invoke_estimated_tokens}}], diagnostics:[{code,message,scope,path}]}. Materializes the bundled tree." },
+        { "verb": "inspect",   "positional": "<skill-id-or-path>", "flags": ["--source …", "--workspace <path>", "--trust-workspace", "--json"], "notes": "--json wraps in {skill:{…, frontmatter:{known:{},unknown:{}}}} (frontmatter always empty). Accepts a SKILL.md file path, not a directory." },
+        { "verb": "enable",    "positional": "<skill-id-or-path>", "flags": ["--scope user|project|built-in|plugin (required; a FILTER)", "--workspace <path>", "--trust-workspace", "--json"], "notes": "Writes settings.skills.activation; CLI scope built-in maps to settings scope bundled." },
+        { "verb": "user-only", "positional": "<skill-id-or-path>", "flags": ["--scope … (required)", "--workspace <path>", "--trust-workspace", "--json"], "notes": "Third activation state user-invocable-only (absent from the top-level help)." },
+        { "verb": "disable",   "positional": "<skill-id-or-path>", "flags": ["--scope … (required)", "--workspace <path>", "--trust-workspace", "--json"], "notes": "`muse skills disable bundled:<id> --scope built-in` is the catalog refund lever." },
+        { "verb": "validate",  "positional": "<path> (skill DIRECTORY)", "flags": ["--json"], "notes": "Reports compatibility profile agent-skills-common-subset (known/unknown/unsupported fields). Does NOT flag an unknown experimental-gate; accepts BOM and name≠dir." },
+        { "verb": "install",   "positional": "<path>", "flags": ["--scope user (only value; project → `local installs only support --scope user`)", "--name NAME", "--force", "--json"], "notes": "Into $CONFIG_DIR/skills/<id> with .muse/lock.json + audit.log. --force overrides skill-already-installed but NOT install-would-overwrite-unmanaged-files. Symlinked source dirs install (dangling ones fail)." },
+        { "verb": "import",    "flags": ["--from claude|codex (required)", "--scope user", "--dry-run", "--force", "--json"], "notes": "--scope project → `not supported in Phase 8`. Tool-specific candidates quarantined under .muse/import-quarantine/<id>/." },
+        { "verb": "update",    "positional": "<skill-id>", "flags": ["--json"], "notes": "Re-reads the recorded source path from the lockfile." },
+        { "verb": "uninstall", "positional": "<skill-id>", "flags": ["--keep-files", "--json"] }
+      ],
+      "selector_grammar": { "bare id": "project → user → bundled precedence", "bundled:<id>": "always the built-in", "plugin:<pid>:<sid>": "plugin skill (no bare alias)", "workspace-relative path": ".agents/skills/x/SKILL.md", "absolute path": "/abs/…/SKILL.md" },
+      "errors": ["missing skills command", "invalid skills command", "unknown skills command `X`", "missing skill selector", "missing required --scope user|project|built-in|plugin", "missing --from claude|codex", "missing skill package path"]
+    },
+    "plugins": {
+      "count": 12,
+      "gate": "MUSE_EXPERIMENTAL_PLUGINS=1 (install-time only; runtime composition is ungated)",
+      "usage": [
+        "muse plugins install <path> [--scope user|project] [--json]",
+        "muse plugins install <plugin>@<marketplace> [--json]",
+        "muse plugins list [--available] [--json]",
+        "muse plugins inspect <id> [--json]",
+        "muse plugins approve <plugin-id[[:kind]:capability-id] | stable-id> [--json]",
+        "muse plugins reject <plugin-id[[:kind]:capability-id] | stable-id> [--json]",
+        "muse plugins hook test <plugin-id>:<hook-id> | plugin:<plugin-id>:hook:<hook-id> --fixture <path> [--json]",
+        "muse plugins marketplace add <name> <source> [--json]",
+        "muse plugins marketplace list [--json]",
+        "muse plugins marketplace update <name> [--json]",
+        "muse plugins marketplace remove <name> [--json]",
+        "muse plugins enable <id> [--json]",
+        "muse plugins disable <id> [--json]",
+        "muse plugins update <id> [--json]",
+        "muse plugins remove <id> [--delete-data] [--json]",
+        "muse plugins validate <path> [--json]"
+      ],
+      "items": [
+        { "verb": "install",     "forms": ["<path> [--scope user|project] [--json]", "<plugin>@<marketplace> [--json]"], "description": "Install a local plugin bundle into the cache / from a configured marketplace snapshot", "notes": "Default scope user; --scope project requires a trust.json entry and a local path; records to $XDG_DATA_HOME/muse/plugins/installed.json; cache at plugins/cache/local/<id>/<pkgsha>/package. Hooks/MCP/reminders land as review_needed." },
+        { "verb": "list",        "flags": ["--available", "--json"], "description": "List installed or available plugins", "notes": "`--available` is [] in 1.0.1/1.1.0. Does NOT emit the gate table to the bootstrap trace." },
+        { "verb": "inspect",     "positional": "<id>", "flags": ["--json"], "description": "Inspect one installed plugin and its runtime capabilities", "notes": "The trust oracle: a capability line must be PRESENT and literally trusted_enabled. Kinds: hook, reminder, mcp_server, agent_definition. States: review_needed, trusted_enabled, trusted_disabled, modified, invalid, blocked." },
+        { "verb": "approve",     "positional": "<plugin-id[[:kind]:capability-id] | stable-id>", "flags": ["--json"], "description": "Trust and enable current runtime capability definitions", "notes": "Non-interactive, no TTY. Stable id form plugin:<pid>:<kind>:<cap>. Writes settings.runtime_capabilities. Silently manufactures a canonical/legacy reminder conflict if settings.plugins disagrees." },
+        { "verb": "reject",      "positional": "<plugin-id[[:kind]:capability-id] | stable-id>", "flags": ["--json"], "description": "Trust and disable current runtime capability definitions" },
+        { "verb": "hook",        "subverb": "test", "positional": "<plugin-id>:<hook-id> | plugin:<plugin-id>:hook:<hook-id>", "flags": ["--fixture <path> (required; {\"event\":…,\"stdin\":{…}} + optional matcher_input, cwd)", "--json"], "description": "Run one installed plugin hook against a fixture", "notes": "Does not require approval." },
+        { "verb": "marketplace", "subverbs": { "add": "<name> <source> [--json] — source: owner/repo | git URL | file:// URL | local path (kinds local-dir | local-file | git)", "list": "[--json]", "update": "<name> [--json]", "remove": "<name> [--json]" }, "description": "Manage marketplace sources and snapshots", "notes": "`tbh-curated` is reserved (add/remove refused). Catalog files probed: .claude-plugin/marketplace.json (Claude schema) and .agents/plugins/marketplace.json (Codex schema)." },
+        { "verb": "enable",      "positional": "<id>", "flags": ["--json"], "description": "Enable an installed plugin for future runtime loads", "notes": "Any mutation verb (enable/disable/install) emits all 41 gate.resolve lines to the bootstrap trace — the gate probe." },
+        { "verb": "disable",     "positional": "<id>", "flags": ["--json"], "description": "Disable an installed plugin", "notes": "DELETES the plugin's runtime_capabilities lines (does not set a bad state)." },
+        { "verb": "update",      "positional": "<id>", "flags": ["--json"], "description": "Refresh an installed local plugin from its source", "notes": "Any package byte change → every native capability becomes `modified`; re-approve afterwards. Refuses if the manifest name changed." },
+        { "verb": "remove",      "positional": "<id>", "flags": ["--delete-data", "--json"], "description": "Remove an installed plugin record and cached package", "notes": "Strips runtime_capabilities; --delete-data also removes plugins/data/<id>." },
+        { "verb": "validate",    "positional": "<path>", "flags": ["--json"], "description": "Validate a local plugin bundle without installing or executing it", "notes": "R11 predicates: rc==0 && valid==true && diagnostics==[] && manifest_family==\"native\" && every compatibility declaration \"supported\". Zero inspection of SKILL.md. On some error paths --json is followed by a bare text line — use raw_decode." }
+      ],
+      "errors": ["unsupported plugins command `X`", "unknown plugins list option `--X`", "plugins are not available in this build (exit 2, ungated)", "invalid plugins install --scope `X` (expected user or project)", "plugins install --scope project requires a local plugin path"]
+    },
+    "exec": {
+      "documented_flags": ["--json", "--prompt-file", "--api-key-stdin", "--provider", "--preset", "--permission-profile", "--model", "--reasoning-effort", "--parallel-tool-calls", "--no-parallel-tool-calls", "--base-url", "--image (repeatable)", "--workspace", "-w/--worktree", "--worktree-base", "--worktree-existing", "--context-compaction-strategy", "--context-compaction-soft-threshold", "--context-compaction-hard-threshold", "--max-model-steps", "--max-tool-output-bytes", "--session-id", "--allow-workspace-switch", "--user-input-auto-resolve", "--subagent-worktree-isolation", "--disable-web-tools", "--no-foreign-personal-context", "--no-session-log", "--approval-mode", "--approval-judge", "--yolo", "--trust-workspace", "--disable-approval", "--disable-sandbox", "--sandbox-network", "--disable-write", "--disable-shell", "--enable-shell-tool", "-h/--help"],
+      "undocumented_flags": ["--agents <JSON>", "--eval-context-compaction-strategy <ID> (needs TBH_CONTEXT_COMPACTION_EVIDENCE_PATH; meta-only)", "--eval-workflow-api-version <v1|v2>", "--api-key (refused)"],
+      "omm_probe_invocation": "muse exec --provider echo [--trust-workspace] hi → session.jsonl at $XDG_DATA_HOME/muse/sessions/YYYY/MM/DD/<uuid>/ (order-200 skills_catalog in model_request_configured.run_context_messages)"
+    }
+  },
+  "hidden_argv_modes": ["__tbh_internal_bwrap (TBH_INTERNAL_MODE=bwrap, Linux)", "__tbh_internal_linux_sandbox (TBH_INTERNAL_MODE=linux-sandbox, Linux)", "__tbh_internal_process_owner_pty_gate_v1 (TBH_INTERNAL_PROCESS_OWNER_TOKEN; hangs, exit 125 on timeout)"],
+  "launcher": {
+    "note": "`muse` on PATH is muse-launcher.sh, which exec's muse-bin-<version> and adds no subcommands. MUSE_NO_AUTO_UPDATE / MUSE_RELEASE_INFO are launcher-only (0 occurrences in the binary). omm calls muse-bin-* directly.",
+    "launcher_env": ["MUSE_NO_AUTO_UPDATE", "MUSE_SYNC_UPDATE", "MUSE_UPDATE_INTERVAL_SECONDS", "MUSE_LAUNCHER_INSTALL", "MUSE_LAUNCHER_URL", "MUSE_CHANNEL_URL", "MUSE_DOWNLOAD_HOST", "MUSE_RELEASE_INFO", "MUSE_AUTH_URL", "MUSE_AUTH_PATH", "MUSE_CLIENT_ID", "MUSE_LOGIN"]
+  },
+  "process_start_validators": ["MUSE_ENABLE_WEB_TOOLS must be one of 1,true,on,yes,0,false,off,no", "MUSE_WEB_SEARCH_MODE must be one of client,hosted,off — a bad value in either aborts EVERY subcommand, including --version"],
+  "notes": [
+    "All 16 help texts are byte-identical between 1.0.1-R2006.1 and 1.1.0-R2009.1; only --version differs (canary-diff rows 1-3).",
+    "Malformed settings.json is lazy: --version, --help, export, init, workflows list succeed; settings-consuming commands fail → probe with `muse skills list`.",
+    "There is no CLI path to persist workspace trust (no `trust` verb; --trust-workspace is per-run). trust.json must be hand-written or set in the TUI."
+  ]
+}

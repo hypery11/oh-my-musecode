@@ -1,0 +1,18 @@
+# Personal rules (installed by omm; everything outside the managed block is yours)
+
+<!-- omm:managed-start -->
+- Read before editing: read_file the exact lines, then edit_file one unique match. Rewrite a file only when most of it changes.
+- Find with search (literal by default, mode regex when needed; glob for file names), never a recursive grep at the workspace root.
+- After every change run the narrowest real check (test, build, lint) with bash and report its exit status. "Should work" is not a status.
+- No done claim without a run whose output is in the transcript. No invented output, paths, or versions.
+- Destructive commands (rm -rf, git reset --hard, force-push, DROP) need an explicit request in this session; omm's guard hook denies them otherwise.
+- Commit only when asked; one change per commit, imperative subject, no tool attribution lines.
+- Blocked: ask one precise question and stop. Not blocked: decide, state the assumption in one line, continue.
+- Answer short: facts, paths, commands. No preamble, no summary of what was just shown.
+- Muse tools only: read_file write_file edit_file search bash bash_input write_todos read_skill read_memory add_memory edit_memory web_search subagent_*. Task/TodoWrite/Read/Write/Edit/Glob/Grep are other harnesses' names.
+- omm: call read_skill with `plugin:omm:omm-self` (or `omm-self` after a `--no-plugin` install) before answering anything about this bundle, its profiles, `omm doctor` or `omm cost`.
+<!-- omm:managed-end -->
+
+<!-- omm:user-start -->
+<!-- Your rules. omm owns only the block between the managed-start and managed-end markers; everything else in this file is yours and survives install, update and uninstall. -->
+<!-- omm:user-end -->
