@@ -321,6 +321,13 @@ impl Roots {
     pub fn bootstrap_trace_dir(&self) -> PathBuf {
         self.muse_data().join("local-tracing").join("bootstrap")
     }
+    /// `runtime/` — the fallback session-registry root (`$XDG_DATA_HOME/muse/runtime/muse`).
+    /// On macOS the host uses the per-uid `/private/tmp` dir instead (residue.rs),
+    /// but on Linux the registry (sessions, the mutation lock) lands here, inside
+    /// our bases — so uninstall names it and never touches it on every OS.
+    pub fn runtime_fallback_dir(&self) -> PathBuf {
+        self.muse_data().join("runtime")
+    }
     /// `skills/bundled/muse-core/` — the 15 built-ins, materialised by skill loading.
     pub fn bundled_skills_dir(&self) -> PathBuf {
         self.muse_data()

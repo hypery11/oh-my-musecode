@@ -7,6 +7,7 @@ use serde_json::json;
 
 use omm_doctor::checks;
 use omm_doctor::{Options, Severity};
+use omm_host::host_reality as hr;
 use omm_host::probe;
 use omm_host::settings::CommitOptions;
 use omm_host::trust::{TrustDecision, TrustStore};
@@ -660,7 +661,12 @@ fn d9_enterprise_probe_rows_and_a_failing_host() {
     let h = host_or_skip!();
     let c = run(&h.ctx(), "D9");
     assert_eq!(c.severity, Severity::Info, "{c:?}");
-    assert!(c.observed.starts_with("4 sources:"), "{}", c.observed);
+    assert!(
+        c.observed
+            .starts_with(&format!("{} sources:", hr::ENTERPRISE_SOURCES)),
+        "{}",
+        c.observed
+    );
     assert!(
         c.observed.contains("defaults/system_file absent"),
         "{}",

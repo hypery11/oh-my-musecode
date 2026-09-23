@@ -365,6 +365,13 @@ pub const ENTERPRISE_GENERATION: &str =
 #[cfg(not(target_os = "macos"))]
 pub const ENTERPRISE_GENERATION: &str =
     "sha256:a0cf253e6e09d7739aecef4f30be4e5f6e5671baafd912ad123fdbb8315b5cdf";
+/// Source lines in `muse config status` output: four on macOS (system_file
+/// plus macos_managed_preferences, defaults and policy each), two elsewhere.
+#[cfg(target_os = "macos")]
+pub const ENTERPRISE_SOURCES: usize = 4;
+/// See the macOS definition.
+#[cfg(not(target_os = "macos"))]
+pub const ENTERPRISE_SOURCES: usize = 2;
 /// MSP client→server methods, counted from `msp.schema.json` → `methods` (msp-protocol.md §1).
 pub const MSP_METHODS: usize = 47;
 /// MSP server→client notifications, `msp.schema.json` → `notifications` (msp-protocol.md §1).

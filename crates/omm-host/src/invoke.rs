@@ -1064,8 +1064,9 @@ mod tests {
         // Gate 0 residual: `Child::kill` SIGKILLs the host pid alone, so a
         // hook the host spawned survived as an orphan — own pgid, ppid 1 —
         // for the rest of its `sleep`. The fake host mirrors a backgrounded
-        // hook: a subshell child that puts its own `sleep` (the grandchild)
-        // into a new process group with `set -m`, plus the host's own sleep.
+        // hook: a subshell child whose own sleeper (the grandchild) sits in
+        // a new process group via python `os.setsid()` (`set -m` is refused
+        // by dash without a tty), plus the host's own sleep.
         let _serial = timing_guard();
         let dir = tempfile::tempdir().unwrap();
         let out = dir.path().join("out");
@@ -1074,7 +1075,7 @@ mod tests {
             dir.path(),
             &format!(
                 "#!/bin/sh\n\
-                 ( set -m; sleep 30 & echo $! > '{o}/grandchild.pid'; ps -o pgid= -p $! > '{o}/grandchild.pgid'; wait ) &\n\
+                 ( python3 -c \"import os, time; os.setsid(); open('{o}/grandchild.pgid', 'w').write(str(os.getpgrp())); time.sleep(30)\" & echo $! > '{o}/grandchild.pid'; wait ) &\n\
                  echo $! > '{o}/child.pid'\n\
                  ps -o pgid= -p $$ > '{o}/host.pgid'\n\
                  echo $$ > '{o}/host.pid'\n\

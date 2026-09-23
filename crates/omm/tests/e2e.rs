@@ -825,6 +825,7 @@ fn host_owned_residue() -> Vec<String> {
         "data/muse/sessions",
         "data/muse/local-tracing",
         "data/muse/plugins",
+        "data/muse/runtime",
         "config/muse/.settings.json.lock",
         "config/muse/.auth.json.lock",
         "config/muse/skills/.muse",
@@ -840,6 +841,30 @@ fn is_host_owned(rel: &str) -> bool {
     host_owned_residue()
         .iter()
         .any(|p| rel == p || rel.starts_with(&format!("{p}/")))
+}
+
+/// Relative names under a leftover dir, for failure messages.
+fn leftover_list(dir: &Path) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(rd) = std::fs::read_dir(&d) else {
+            continue;
+        };
+        for e in rd.flatten() {
+            let p = e.path();
+            if p.is_dir() && !p.is_symlink() {
+                stack.push(p.clone());
+            }
+            out.push(
+                p.strip_prefix(dir)
+                    .map(|r| r.display().to_string())
+                    .unwrap_or_else(|_| p.display().to_string()),
+            );
+        }
+    }
+    out.sort();
+    out
 }
 
 fn walk(base: &Path, dir: &Path, scope: &str, out: &mut Snapshot) {
@@ -1912,7 +1937,11 @@ fn s07_theme_sets_tui_theme_records_the_prior_and_uninstall_restores_it() {
     assert!(!h.config_root().join("themes").exists());
     assert!(!h.config_root().join("AGENTS.md").exists());
     assert!(!h.config_root().join("trust.json").exists());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.ledger().is_none());
     assert!(h.inspect().is_err());
     let list = h
@@ -2150,7 +2179,11 @@ fn s10_install_under_ci_without_yes_is_refused_and_writes_nothing() {
     assert!(r.stderr.contains("--yes"), "{}", r.ctx());
     assert!(r.stderr.contains("CI=true"), "{}", r.ctx());
     assert!(r.stdout.is_empty(), "{}", r.ctx());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert_eq!(h.snapshot(), before, "nothing written anywhere");
     assert!(h.inspect().is_err());
     assert!(h.installed_plugin_ids().is_empty());
@@ -2159,7 +2192,11 @@ fn s10_install_under_ci_without_yes_is_refused_and_writes_nothing() {
     let r = h.omm_env(&["install", "--source", h.repo_str()], false, &[]);
     assert_eq!(r.code, 1, "{}", r.ctx());
     assert!(r.stderr.contains("not a terminal"), "{}", r.ctx());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     // --dry-run never needs consent and writes nothing under $OMM or the config root.
     let config_before: Snapshot = before
         .iter()
@@ -2394,7 +2431,11 @@ fn s13_build_check_passes_on_the_committed_tree() {
     let c = std::fs::read(h.repo.join("marketplace.json")).expect("marketplace.json");
     assert!(String::from_utf8_lossy(&c).contains(&committed_digest(&h.repo)));
     // Nothing of that ran against the sandbox roots or the repository as cwd.
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     for name in ["AGENTS.md", "settings.json", "trust.json", "themes"] {
         assert!(
             !h.config_root().join(name).exists(),
@@ -2630,7 +2671,11 @@ fn s14_pre_existing_rules_come_back_byte_for_byte_and_a_user_region_edit_survive
     assert_eq!(mode(&trust_path), 0o644);
     assert_eq!(un.json["report"]["shared_restored"], 2, "{}", un.ctx());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -2688,7 +2733,11 @@ fn s14_pre_existing_rules_come_back_byte_for_byte_and_a_user_region_edit_survive
     assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
     assert_eq!(un.json["report"]["ledger_removed"], true);
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.inspect().is_err());
     assert!(h.installed_plugin_ids().is_empty());
     assert!(!h.marketplace_names().contains(&"omm".to_string()));
@@ -2744,7 +2793,11 @@ fn s15_an_interrupted_bundle_install_is_undone_by_uninstall() {
     assert_eq!(un.code, 0, "{}", un.ctx());
     assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.inspect().is_err());
     assert!(h.installed_plugin_ids().is_empty());
     assert!(!h.marketplace_names().contains(&"omm".to_string()));
@@ -2828,7 +2881,11 @@ fn s15b_an_interrupted_no_plugin_install_is_at_most_one_skill_ahead_of_its_ledge
     assert!(h.store_skill_ids().is_empty(), "{:?}", h.store_skill_ids());
     assert!(h.skills_listed("user").is_empty());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -2914,7 +2971,11 @@ fn s15c_a_bundle_install_killed_as_the_host_lists_the_plugin_is_undone_with_reco
         assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
     }
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.inspect().is_err());
     assert!(h.installed_plugin_ids().is_empty());
     assert!(!h.marketplace_names().contains(&"omm".to_string()));
@@ -3093,7 +3154,11 @@ fn s17_uninstall_completes_after_the_host_lost_a_registration_by_hand() {
     assert!(h.store_skill_ids().is_empty(), "{:?}", h.store_skill_ids());
     assert!(h.skills_listed("user").is_empty());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -3246,7 +3311,11 @@ fn s18_install_refuses_up_front_when_themes_escape_the_base_and_skip_themes_inst
     );
     assert_eq!(r.code, 2, "{}", r.ctx());
     assert!(r.stderr.contains("OMM_THEMES_DIR"), "{}", r.ctx());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.inspect().is_err() && h.marketplace_names().is_empty());
     assert_eq!(h.snapshot_sans_host_residue(), before_sans);
     dotfiles_untouched(&h);
@@ -3652,7 +3721,11 @@ fn s22_uninstall_preserves_a_skill_behind_an_in_base_ancestor_symlink_to_identic
         assert!(!store.join(id).exists(), "{id} removed");
     }
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -3765,7 +3838,11 @@ fn s23_a_title_above_and_a_rule_below_the_managed_block_survive_install_update_a
     assert_eq!(left, "# MY TITLE\n- MY TRAILING RULE\n");
     assert!(!left.contains("omm:"), "a marker line survived: {left}");
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(h.store_skill_ids().is_empty());
     let residue = strings(&un.json["preview"]["residue"]);
     // R5 modulo the rules file the user made theirs.
@@ -3894,7 +3971,11 @@ fn s24_a_store_dir_the_host_has_no_provenance_for_is_removed_by_omm_and_both_ver
     assert!(h.store_skill_ids().is_empty(), "{:?}", h.store_skill_ids());
     assert!(h.skills_listed("user").is_empty());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -3972,7 +4053,11 @@ fn s25_reconcile_host_never_hands_a_linked_store_dir_to_the_host() {
         "the other skills are gone"
     );
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
 
     // No ledger now, the host still lists the linked directory: the
     // ledger-less reconciliation keeps it too.
@@ -3996,7 +4081,11 @@ fn s25_reconcile_host_never_hands_a_linked_store_dir_to_the_host() {
         "the link's target was touched"
     );
     assert!(store.join("omm-commit").is_symlink());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -4115,7 +4204,11 @@ fn s26_the_ledger_lists_the_rules_file_and_the_themes_before_they_exist_on_disk(
     assert!(!agents_path.exists(), "the adopted seed is omm's: removed");
     assert!(!themes_dir.exists());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -4224,7 +4317,11 @@ fn s27_malformed_host_config_is_refused_by_the_plan_and_an_uninstall_over_it_com
     assert!(h.installed_plugin_ids().is_empty());
     assert!(!h.marketplace_names().contains(&"omm".to_string()));
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(!h.config_root().join("AGENTS.md").exists());
     assert!(!h.config_root().join("themes").exists());
     assert!(
@@ -4282,7 +4379,11 @@ fn s27_malformed_host_config_is_refused_by_the_plan_and_an_uninstall_over_it_com
     assert_eq!(un.code, 0, "{}", un.ctx());
     assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(!trust_path.exists(), "omm created trust.json; it goes");
     assert!(
         !h.settings_path().exists(),
@@ -4442,13 +4543,19 @@ impl StaticServer {
             .stderr(Stdio::null())
             .spawn()
             .expect("spawn http.server");
-        let server = StaticServer {
+        let mut server = StaticServer {
             _child: Background(child),
         };
-        assert!(
-            wait_for_port(port),
-            "http.server did not listen on 127.0.0.1:{port}"
-        );
+        if !wait_for_port(port) {
+            // Distinguish a crashed server (environment: no/broken python)
+            // from a slow one: an early exit reports its status.
+            match server._child.0.try_wait() {
+                Ok(Some(status)) => panic!(
+                    "http.server exited early with {status} instead of listening on 127.0.0.1:{port}"
+                ),
+                _ => panic!("http.server did not listen on 127.0.0.1:{port} within 10 s"),
+            }
+        }
         server
     }
 }
@@ -5205,7 +5312,11 @@ fn s29_memory_seed_composes_the_block_backup_and_gc_keep_it_and_uninstall_remove
     assert!(!root.exists(), "the root omm created is pruned");
     assert!(!h.config_root().join("trust.json").exists());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     let residue = strings(&un.json["preview"]["residue"]);
     let after = h.snapshot();
     h.check_r5(&mut f, &before, &after, &residue);
@@ -5269,7 +5380,11 @@ fn s29b_an_edited_memory_seed_is_preserved_and_named_by_uninstall_and_never_rese
     );
     assert!(!sidecar.exists(), "the sidecar is omm's: removed");
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(!h.config_root().join("trust.json").exists());
 
     // Seeded again: the user's file is skipped, never overwritten; only the
@@ -5614,7 +5729,11 @@ fn s30_skill_routing_merges_a_user_hooks_file_routes_through_the_mock_provider_a
     assert_eq!(un.code, 0, "{}", un.ctx());
     assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
     assert!(h.ledger().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
     assert!(!h.config_root().join("trust.json").exists());
     let ws_diff = snapshot_diff(&ws_before, &h.ws_snapshot());
     assert!(ws_diff.is_empty(), "{}", ws_diff.join("\n"));
@@ -5984,5 +6103,9 @@ fn s32_install_sh_verifies_the_checksum_places_only_the_binary_and_refuses_a_bad
     assert!(files_under(&home).is_empty());
     // The sandbox's own HOME and roots never entered into it.
     assert!(h.sb.home.read_dir().expect("home").next().is_none());
-    assert!(!h.omm_root().exists());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
 }

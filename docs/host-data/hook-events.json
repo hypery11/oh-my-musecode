@@ -100,7 +100,7 @@
       "name": "Stop", "snake": "stop", "fires_in_echo_session": true,
       "decisions": { "block": true, "stop": true, "context": false, "feedback": false, "rewrite": false, "permission_verdict": false, "skills_v1": false, "bare_stdout_context": false },
       "matcher_selector": null,
-      "payload": { "proven": ["stop_hook_active", "last_assistant_message", "turn_id"], "plausible": [], "unknown": false, "note": "block → `stop hook requested continuation`, capped by settings.max_consecutive_stop_hook_continuations (default 8 → 9 assistant turns); stop_hook_active flips to true on every continuation after the first." }
+      "payload": { "proven": ["hook_event_name", "stop_hook_active", "last_assistant_message", "turn_id", "session_id", "cwd", "transcript_path", "model", "permission_mode", "model_provider"], "plausible": [], "unknown": false, "note": "block → `stop hook requested continuation`, capped by settings.max_consecutive_stop_hook_continuations (default 8 → 9 assistant turns); stop_hook_active flips to true on every continuation after the first. Natural turn end on 1.3.0-R3401.1 carries no reason/status/outcome keys; SIGINT mid-turn (exit 130, session logs flushed) never invokes the Stop hook at all — an outcome scan therefore usually finds nothing, by host design." }
     },
     {
       "name": "SessionEnd", "snake": "session_end", "fires_in_echo_session": true,

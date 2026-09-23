@@ -184,6 +184,9 @@ One JSONL line (`ts`, `kind`, `hook`, `subagent_id`, `child_session_id`, `sessio
 a stop adds `outcome`) appended to `<cwd>/.omm/team/log.jsonl`, camelCase event aliases
 accepted. `outcome` is the first non-empty terminal word the stop payload carries
 (`status`, `outcome`, `terminal`, …) — cancellations land here when the host reports them.
+Measured on 1.3.0-R3401.1, a natural stop carries no reason/status/outcome keys
+at all (so `outcome` is usually absent), and SIGINT mid-turn never invokes the
+Stop hook in the first place — the scan exists for the payloads that do carry one.
 Appends only under an `.omm/` that already exists — the hooks never create it — and always
 answers `{}`: logging never blocks, and a hook that cannot log still allows.
 

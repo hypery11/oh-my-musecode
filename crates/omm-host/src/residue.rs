@@ -622,16 +622,17 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn kill_tree_takes_a_grandchild_in_its_own_process_group() {
-        // A shell child that puts its own child (`sleep`) into a new process
-        // group with `set -m`, the way a backgrounded hook does; killing the
-        // shell alone would orphan the sleep.
+        // A shell child whose own child (python, `os.setsid()`) sits in a new
+        // process group, the way a backgrounded hook does; killing the shell
+        // alone would orphan the sleeper. (`set -m` would be the shell-native
+        // way, but dash — /bin/sh on Ubuntu — refuses job control without a
+        // tty, so the fixture uses python instead. Both OSs have python3.)
         let tmp = tempfile::tempdir().unwrap();
         let out = tmp.path().to_path_buf();
         let mut child = std::process::Command::new("/bin/sh")
             .arg("-c")
             .arg(format!(
-                "set -m; sleep 30 & echo $! > '{}/grandchild.pid'; ps -o pgid= -p $! > '{}/grandchild.pgid'; wait",
-                out.display(),
+                "python3 -c \"import os, time; os.setsid(); open('{0}/grandchild.pgid', 'w').write(str(os.getpgrp())); time.sleep(30)\" & echo $! > '{0}/grandchild.pid'; wait",
                 out.display()
             ))
             .stdin(std::process::Stdio::null())
@@ -703,11 +704,18 @@ mod tests {
         fixture(&dir, dead, me);
         let alive = pids_alive(&BTreeSet::from([me, dead]));
         assert_eq!(alive, BTreeSet::from([me]));
-        // An out-of-range pid makes `ps` refuse the request: no verdict, so
-        // every pid counts as alive and nothing would be swept.
+        // An out-of-range pid makes macOS `ps` refuse the request: no verdict,
+        // so every pid counts as alive and nothing would be swept. GNU `ps`
+        // just skips unknown pids instead.
+        #[cfg(target_os = "macos")]
         assert_eq!(
             pids_alive(&BTreeSet::from([me, 4_194_303, dead])),
             BTreeSet::from([me, 4_194_303, dead])
+        );
+        #[cfg(not(target_os = "macos"))]
+        assert_eq!(
+            pids_alive(&BTreeSet::from([me, 4_194_303, dead])),
+            BTreeSet::from([me])
         );
         let swept = sweep_dead(&dir).unwrap();
         assert_eq!(swept.pids, BTreeSet::from([dead]));

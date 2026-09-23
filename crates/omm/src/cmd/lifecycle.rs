@@ -512,6 +512,9 @@ pub fn host_residue(ctx: &Ctx) -> Vec<PathBuf> {
             .map(Path::to_path_buf)
             .unwrap_or_else(|| ctx.roots.bootstrap_trace_dir()),
     );
+    // The fallback session-registry root: outside our bases on macOS, inside
+    // them on Linux — named unconditionally either way.
+    out.push(ctx.roots.runtime_fallback_dir());
     out
 }
 
