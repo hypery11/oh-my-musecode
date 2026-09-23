@@ -12,10 +12,12 @@
 #            announced as a notice next to the pinned version.
 #
 # The pinned host version is read from docs/host-data/muse-cli.json
-# (`observed_build`) — the one place it is recorded, never a copy here — and the
-# gate also runs against the previous stable build (`previous_stable_build`), so
-# a data row tagged `since` the newer build must pass as OLDER-BUILD on the older
-# one (hostcheck module docs; docs/host-reality.md "Release log").
+# (`observed_build`) — the one place it is recorded, never a copy here. There is
+# deliberately no matrix leg for `previous_stable_build`: schema fingerprints and
+# MSP counts differ between builds (even patches), so a full gate against an older
+# binary cannot pass by design. New facts carry `since` tags and resolve as
+# OLDER-BUILD on older binaries instead (hostcheck module docs; docs/host-reality.md
+# "Release log"); the scheduled channel poll is the drift detector for new builds.
 # Every host run is sandboxed: scripts/gate.sh's tests bring their own HOME/XDG
 # roots, and the `omm build --check` step points HOME/XDG at a throwaway directory.
 
@@ -47,8 +49,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        # `pinned` = muse-cli.json observed_build, `previous` = previous_stable_build.
-        host: [pinned, previous]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -72,17 +72,11 @@ jobs:
           shellcheck -s bash scripts/fetch-host.sh scripts/release.sh
           shellcheck -s sh install.sh
 
-      - name: host version (${{ matrix.host }})
+      - name: host version (pinned)
         id: host
-        env:
-          HOST_ROLE: ${{ matrix.host }}
         run: |
-          if [ "$HOST_ROLE" = previous ]; then
-            version="$(jq -r .previous_stable_build docs/host-data/muse-cli.json)"
-          else
-            version="$(jq -r .observed_build docs/host-data/muse-cli.json)"
-          fi
-          echo "$HOST_ROLE host: $version"
+          version="$(jq -r .observed_build docs/host-data/muse-cli.json)"
+          echo "pinned host: $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: host binary (cached by version)

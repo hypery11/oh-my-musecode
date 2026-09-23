@@ -353,9 +353,17 @@ pub const MSP_SCHEMA_JSON_SHA256: &str =
     "4101b1c23179360f4dd9696ef797df58bea9240d86b79311706114a407da779b";
 /// SHA-256 of the emitted `msp.d.ts` (canary-diff.md §5).
 pub const MSP_DTS_SHA256: &str = "fd88c70b9e57e8f3f32243946c51078500c453296d4a1072742a84fc1192927e";
-/// `muse config status` → `Generation:` (config-paths.md §7.1).
+/// `muse config status` → `Generation:` (config-paths.md §7.1). The hash covers
+/// the source list, which is OS-specific: macOS reports `macos_managed_preferences`
+/// planes (four lines, all absent) while Linux reports only `system_file` (two
+/// lines, all absent) — measured live on 1.3.0-R3057.1, macOS locally and Linux in
+/// a clean container (the same a0cf value the ubuntu CI runners observe).
+#[cfg(target_os = "macos")]
 pub const ENTERPRISE_GENERATION: &str =
     "sha256:db7c1fb6263c2ca1483bcaae0cce50d323b491f600c88f38069012a1b008b5e4";
+#[cfg(not(target_os = "macos"))]
+pub const ENTERPRISE_GENERATION: &str =
+    "sha256:a0cf253e6e09d7739aecef4f30be4e5f6e5671baafd912ad123fdbb8315b5cdf";
 /// MSP client→server methods, counted from `msp.schema.json` → `methods` (msp-protocol.md §1).
 pub const MSP_METHODS: usize = 47;
 /// MSP server→client notifications, `msp.schema.json` → `notifications` (msp-protocol.md §1).
