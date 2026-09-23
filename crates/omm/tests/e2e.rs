@@ -4584,56 +4584,116 @@ impl MockProvider {
     }
 }
 
-/// `python3 -m http.server` serving `dir` on `127.0.0.1:<port>`.
+/// Static files over loopback, served by the test itself: `python3 -m
+/// http.server` stalls before binding on some macOS CI boxes (process
+/// alive, empty stderr, port closed — three runs), while a std listener
+/// binds at once and a bind failure is loud instead of a mystery.
 struct StaticServer {
-    _child: Background,
+    port: u16,
+    stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    thread: Option<std::thread::JoinHandle<()>>,
+}
+
+impl Drop for StaticServer {
+    fn drop(&mut self) {
+        use std::sync::atomic::Ordering;
+        self.stop.store(true, Ordering::Relaxed);
+        if let Some(t) = self.thread.take() {
+            let _ = t.join();
+        }
+    }
 }
 
 impl StaticServer {
-    fn start(python: &Path, dir: &Path, port: u16) -> StaticServer {
-        let mut child = Command::new(python)
-            .args([
-                "-m",
-                "http.server",
-                &port.to_string(),
-                "--bind",
-                "127.0.0.1",
-            ])
-            .arg("--directory")
-            .arg(dir)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("spawn http.server");
-        if !wait_for_port(port) {
-            // An early exit reports its status; a stuck server is killed
-            // and reaped so its stderr names the real cause (a bind
-            // failure, a traceback) instead of a bare timeout.
-            let early = child.try_wait().ok().flatten();
-            let _ = child.kill();
-            let err = child
-                .wait_with_output()
-                .map(|o| {
-                    String::from_utf8_lossy(&o.stderr)
-                        .chars()
-                        .take(500)
-                        .collect::<String>()
-                })
-                .unwrap_or_default();
-            match early {
-                Some(status) => panic!(
-                    "http.server ({}) exited early with {status} instead of listening on 127.0.0.1:{port}; stderr: {err}",
-                    python.display(),
-                ),
-                None => panic!(
-                    "http.server ({}) did not listen on 127.0.0.1:{port} within 10 s; stderr: {err}",
-                    python.display(),
-                ),
+    fn start(dir: &Path) -> StaticServer {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind the fixture server");
+        listener.set_nonblocking(true).expect("nonblocking");
+        let port = listener.local_addr().expect("local addr").port();
+        let stop = std::sync::Arc::new(AtomicBool::new(false));
+        let www = dir.to_path_buf();
+        let flag = stop.clone();
+        let thread = std::thread::spawn(move || {
+            while !flag.load(Ordering::Relaxed) {
+                match listener.accept() {
+                    Ok((stream, _)) => serve_one(&www, stream),
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        std::thread::sleep(Duration::from_millis(10));
+                    }
+                    Err(_) => {
+                        if flag.load(Ordering::Relaxed) {
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        let server = StaticServer {
+            port,
+            stop,
+            thread: Some(thread),
+        };
+        assert!(
+            wait_for_port(port),
+            "the fixture server did not listen on 127.0.0.1:{port} within 10 s"
+        );
+        server
+    }
+
+    fn port(&self) -> u16 {
+        self.port
+    }
+}
+
+/// One GET: the request line's path under `www`, or 404. Enough for
+/// install.sh's curl (tarballs, install.sh, SHA256SUMS).
+fn serve_one(www: &Path, mut stream: std::net::TcpStream) {
+    use std::io::Read as _;
+    // Accepted sockets inherit the listener's nonblocking mode: serve
+    // blocking, or large bodies fail with WouldBlock after the first buffer.
+    let _ = stream.set_nonblocking(false);
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
+    let mut head = Vec::new();
+    let mut buf = [0u8; 1024];
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) | Err(_) => return,
+            Ok(n) => {
+                head.extend_from_slice(&buf[..n]);
+                if head.len() > 8192 || head.windows(4).any(|w| w == b"\r\n\r\n") {
+                    break;
+                }
             }
         }
-        StaticServer {
-            _child: Background(child),
+    }
+    let path = String::from_utf8_lossy(&head)
+        .lines()
+        .next()
+        .unwrap_or("")
+        .split_whitespace()
+        .nth(1)
+        .unwrap_or("/")
+        .to_string();
+    let rel = path.trim_start_matches('/').to_string();
+    let file = www.join(&rel);
+    // Contain the request: no escapes above `www`, files only.
+    let ok = !rel.contains("..") && file.is_file();
+    let body = ok.then(|| std::fs::read(&file).ok()).flatten();
+    match body {
+        Some(bytes) => {
+            let _ = stream.write_all(
+                format!(
+                    "HTTP/1.0 200 OK\r\nContent-Length: {}\r\nContent-Type: application/octet-stream\r\nConnection: close\r\n\r\n",
+                    bytes.len()
+                )
+                .as_bytes(),
+            );
+            let _ = stream.write_all(&bytes);
+        }
+        None => {
+            let _ = stream.write_all(
+                b"HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+            );
         }
     }
 }
@@ -5969,7 +6029,6 @@ fn s31_release_script_refuses_a_dirty_tree_and_bad_versions_and_dry_runs_clean_w
 #[test]
 fn s32_install_sh_verifies_the_checksum_places_only_the_binary_and_refuses_a_bad_list() {
     let h = e2e_or_skip!();
-    let python = python_or_skip!();
     let version = "0.9.9-e2e";
     let target = "e2e-target";
     let asset = format!("omm-{version}-{target}.tar.gz");
@@ -6009,8 +6068,8 @@ fn s32_install_sh_verifies_the_checksum_places_only_the_binary_and_refuses_a_bad
     for name in [asset.as_str(), "SHA256SUMS", "install.sh"] {
         std::fs::copy(vdir.join(name), latest.join(name)).expect("mirror");
     }
-    let _server = StaticServer::start(&python, &www, 8753);
-    let base = "http://127.0.0.1:8753";
+    let _server = StaticServer::start(&www);
+    let base = format!("http://127.0.0.1:{}", _server.port());
     let omm_sha = omm_host::fsx::sha256_file(&h.omm).expect("sha256");
 
     let home_for = |name: &str| -> PathBuf {
@@ -6027,7 +6086,7 @@ fn s32_install_sh_verifies_the_checksum_places_only_the_binary_and_refuses_a_bad
             .env("HOME", home)
             .env("TMPDIR", std::env::temp_dir())
             .env("SHELL", "/bin/bash")
-            .env("OMM_RELEASE_BASE_URL", base)
+            .env("OMM_RELEASE_BASE_URL", base.as_str())
             .env("OMM_INSTALL_ALLOW_HTTP", "1")
             .env("OMM_TARGET", target)
             .current_dir(home)
