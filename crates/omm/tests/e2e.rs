@@ -4591,7 +4591,7 @@ struct StaticServer {
 
 impl StaticServer {
     fn start(python: &Path, dir: &Path, port: u16) -> StaticServer {
-        let child = Command::new(python)
+        let mut child = Command::new(python)
             .args([
                 "-m",
                 "http.server",
@@ -4603,23 +4603,38 @@ impl StaticServer {
             .arg(dir)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .spawn()
             .expect("spawn http.server");
-        let mut server = StaticServer {
-            _child: Background(child),
-        };
         if !wait_for_port(port) {
-            // Distinguish a crashed server (environment: no/broken python)
-            // from a slow one: an early exit reports its status.
-            match server._child.0.try_wait() {
-                Ok(Some(status)) => panic!(
-                    "http.server exited early with {status} instead of listening on 127.0.0.1:{port}"
+            // An early exit reports its status; a stuck server is killed
+            // and reaped so its stderr names the real cause (a bind
+            // failure, a traceback) instead of a bare timeout.
+            let early = child.try_wait().ok().flatten();
+            let _ = child.kill();
+            let err = child
+                .wait_with_output()
+                .map(|o| {
+                    String::from_utf8_lossy(&o.stderr)
+                        .chars()
+                        .take(500)
+                        .collect::<String>()
+                })
+                .unwrap_or_default();
+            match early {
+                Some(status) => panic!(
+                    "http.server ({}) exited early with {status} instead of listening on 127.0.0.1:{port}; stderr: {err}",
+                    python.display(),
                 ),
-                _ => panic!("http.server did not listen on 127.0.0.1:{port} within 10 s"),
+                None => panic!(
+                    "http.server ({}) did not listen on 127.0.0.1:{port} within 10 s; stderr: {err}",
+                    python.display(),
+                ),
             }
         }
-        server
+        StaticServer {
+            _child: Background(child),
+        }
     }
 }
 
