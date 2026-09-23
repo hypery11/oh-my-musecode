@@ -1,0 +1,105 @@
+# release-assets — build the non-native release triples for a published release.
+#
+# release.sh (PLAN.md 2.5) never assumes a cross toolchain: it builds what the
+# local machine has (in practice the aarch64-apple-darwin tarball, cut on a
+# Mac). This workflow is the other half — one job per remaining triple, each
+# installing exactly what release.sh would need, staging the same flat tarball
+# (`omm`, LICENSE, README.md — see release.sh `package_target`). Build jobs
+# hand their tarball to the finalize job as workflow artifacts; only finalize
+# writes SHA256SUMS (tarballs plus the tagged install.sh), so parallel uploads
+# can never clobber each other's sums.
+#
+# Flow: cut the release the usual way (release.sh, tag, `gh release create`),
+# publishing it starts this workflow, which fills in the missing assets.
+
+name: release-assets
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  MUSE_NO_AUTO_UPDATE: "1"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target: x86_64-apple-darwin
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: musl toolchain
+        if: endsWith(matrix.target, '-musl')
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq musl-tools
+
+      - name: build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: stage
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG_NAME#v}"
+          target="${{ matrix.target }}"
+          stage="dist-release/.stage-$target"
+          rm -rf "$stage"
+          mkdir -p "$stage"
+          cp -f "target/$target/release/omm" "$stage/omm"
+          cp -f LICENSE README.md "$stage/"
+          chmod 0755 "$stage/omm"
+          chmod 0644 "$stage/LICENSE" "$stage/README.md"
+          tar -czf "dist-release/omm-$version-$target.tar.gz" -C "$stage" omm LICENSE README.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist-release/omm-*.tar.gz
+          if-no-files-found: error
+
+  finalize:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+          merge-multiple: true
+
+      - name: sums and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # dist-release/ is gitignored, so the tagged tree has no install.sh
+          # there — take it from the repo root (the same file release.sh packs).
+          cp install.sh dist-release/install.sh
+          cd dist-release
+          ls omm-*.tar.gz
+          sha256sum omm-*.tar.gz install.sh > SHA256SUMS
+          gh release upload "${{ github.event.release.tag_name }}" omm-*.tar.gz SHA256SUMS --clobber
