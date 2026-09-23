@@ -663,6 +663,21 @@ pub fn install_themes(
             State::Other => Observed::NonRegular(hash::sentinel("other", c.path.as_str())),
         };
         let (outcome, reason) = reconcile::decide(ancestor.as_deref(), &theirs, &mine);
+        // A ledgered asset that is gone from the disk (a kill between the
+        // ledger save and the write, scenario 26): the R3 NoOp trusts the
+        // ledger, but install converges — rewrite it, the way the rules
+        // step recreates a missing AGENTS.md from the template.
+        let (outcome, reason) = match (&outcome, &mine) {
+            (Outcome::NoOp, Observed::Missing) | (Outcome::Stage, Observed::Missing)
+                if ancestor.is_some() =>
+            {
+                (
+                    Outcome::Overwrite,
+                    "ledgered but missing on disk; rewriting".to_string(),
+                )
+            }
+            _ => (outcome, reason),
+        };
         let label = resolved.path.display().to_string();
         match outcome {
             Outcome::NoOp => {

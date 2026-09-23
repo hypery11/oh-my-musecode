@@ -4216,6 +4216,65 @@ fn s26_the_ledger_lists_the_rules_file_and_the_themes_before_they_exist_on_disk(
 }
 
 // ---------------------------------------------------------------------------
+// 26b. a rerun rewrites ledgered-but-missing themes: scenario 26's kill
+//     window (ledger saved, theme unwritten) made deterministic. A rerun
+//     that trusted the ledger would NoOp and leave doctor D13 warning;
+//     install converges, so the files come back and the uninstall after
+//     removes them again.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn s26b_rerun_rewrites_ledgered_but_missing_themes() {
+    let h = e2e_or_skip!();
+    let mut f = Findings::default();
+    let before = h.baseline();
+    let themes_dir = h.config_root().join("themes");
+    let r = h.omm(&["install", "--no-plugin", "--source", h.repo_str()]);
+    assert_eq!(r.code, 0, "{}", r.ctx());
+    let names: Vec<String> = std::fs::read_dir(&themes_dir)
+        .expect("themes")
+        .flatten()
+        .filter_map(|e| e.file_name().to_str().map(str::to_string))
+        .collect();
+    assert!(names.len() >= 2, "the source ships themes: {names:?}");
+    // What a kill between the ledger save and the theme write leaves.
+    for n in names.iter().take(2) {
+        std::fs::remove_file(themes_dir.join(n)).expect("remove theme");
+    }
+    let r = h.omm(&["install", "--no-plugin", "--source", h.repo_str()]);
+    assert_eq!(r.code, 0, "{}", r.ctx());
+    let written = r.json["themes"]["written"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(
+        written.len(),
+        2,
+        "the missing themes are rewritten, not trusted from the ledger: {}",
+        r.ctx()
+    );
+    for n in &names {
+        assert!(themes_dir.join(n).is_file(), "{n} is back");
+    }
+    let d = h.doctor(true);
+    let rows = non_info_rows(&d.json);
+    assert!(rows.is_empty(), "doctor after the rerun: {rows:?}");
+    let un = h.omm(&["uninstall"]);
+    assert_eq!(un.code, 0, "{}", un.ctx());
+    assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
+    assert!(h.ledger().is_none());
+    assert!(
+        !h.omm_root().exists(),
+        "omm root left behind: {:?}",
+        leftover_list(&h.omm_root())
+    );
+    let residue = strings(&un.json["preview"]["residue"]);
+    let after = h.snapshot();
+    h.check_r5(&mut f, &before, &after, &residue);
+    f.finish("scenario 26b (rerun rewrites ledgered-but-missing themes)");
+}
+
+// ---------------------------------------------------------------------------
 // 27. a malformed settings.json / trust.json is caught by the plan, not
 //     mid-install (Gate 1 round 5 M3): the shape mirror and the host's own
 //     loader (`skills list --json`) refuse up front with the reason and a
