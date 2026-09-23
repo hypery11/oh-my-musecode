@@ -4228,9 +4228,13 @@ fn s26_the_ledger_lists_the_rules_file_and_the_themes_before_they_exist_on_disk(
 fn s27_malformed_host_config_is_refused_by_the_plan_and_an_uninstall_over_it_completes_blind() {
     let h = e2e_or_skip!();
     let mut f = Findings::default();
+    // The seed bed is the test's own doing, not omm's: create it before the
+    // baseline, so the "a refused install touched the roots" assert below
+    // measures omm alone. (On platforms where the host leaves config/muse
+    // absent, the dir stood out as a diff.)
+    std::fs::create_dir_all(h.config_root()).expect("config root");
     let before = h.baseline();
     let trust_path = h.config_root().join("trust.json");
-    std::fs::create_dir_all(h.config_root()).expect("config root");
     let nothing_written = |h: &E2e, r: &Run, needles: &[&str]| {
         assert_eq!(r.code, 2, "{}", r.ctx());
         for n in needles {

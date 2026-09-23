@@ -733,10 +733,27 @@ pub fn plan(ledger: &Ledger, bases: &Bases, opts: Options) -> Result<Plan> {
                     ledger_sha256: entry.sha256.clone(),
                     on_disk: Observed::NonRegular(hash::sentinel("escape", entry.path.as_str())),
                 }),
-                Err(e) => refused.push(Refusal {
-                    key,
-                    reason: e.to_string(),
-                }),
+                Err(e) => {
+                    if let Ok(root) = bases.root(entry.base) {
+                        if bases.root_absent(entry.base) {
+                            // The base root itself is gone (a kill between
+                            // the ledger write and the file write): nothing
+                            // to restore into — the Missing case one level
+                            // up. A host step may recreate the file empty,
+                            // and that is removed again.
+                            created.push(CreatedFile {
+                                key,
+                                abs: entry.path.under(root),
+                                absent_at_plan: true,
+                            });
+                            continue;
+                        }
+                    }
+                    refused.push(Refusal {
+                        key,
+                        reason: e.to_string(),
+                    })
+                }
             }
             continue;
         }
@@ -764,6 +781,20 @@ pub fn plan(ledger: &Ledger, bases: &Bases, opts: Options) -> Result<Plan> {
                 continue;
             }
             Err(e) => {
+                if let Ok(root) = bases.root(entry.base) {
+                    if bases.root_absent(entry.base) {
+                        // As above, for file entries: the ledger names a
+                        // file whose whole base root is gone.
+                        missing.push(Missing {
+                            key,
+                            abs: entry.path.under(root),
+                        });
+                        if let Some(id) = skill {
+                            skills.entry(id).or_insert((false, Vec::new()));
+                        }
+                        continue;
+                    }
+                }
                 refused.push(Refusal {
                     key,
                     reason: e.to_string(),
@@ -1163,8 +1194,11 @@ fn omm_state(bases: &Bases, force: bool) -> Result<OmmState> {
                 if name == store::LEDGER_FILE {
                     continue;
                 }
-                let owned =
-                    OMM_STATE_NAMES.contains(&name.as_str()) || store::is_quarantine_name(&name);
+                let owned = OMM_STATE_NAMES.contains(&name.as_str())
+                    || store::is_quarantine_name(&name)
+                    // A run killed between the temp create and the rename
+                    // (scenario 26): omm's own dropping, removed with the rest.
+                    || fsx::is_tmp_name(&name);
                 if owned || force {
                     remove.push(e.path());
                 } else {
@@ -2500,6 +2534,76 @@ mod tests {
             plan(&fx.ledger, &bad, Options::default()),
             Err(LedgerError::Refused(_))
         ));
+    }
+
+    #[test]
+    fn a_gone_base_root_is_missing_never_refused() {
+        // A kill between the ledger write and the file write (scenario 15c):
+        // the whole config root is absent, so every entry under it resolves
+        // to nothing — the uninstall completes instead of refusing.
+        let fx = fixture();
+        fs::remove_dir_all(&fx.bases.muse_config).unwrap();
+        assert!(fx.bases.root_absent(Base::MuseConfig));
+        assert!(!fx.bases.root_absent(Base::MuseData));
+        let p = plan(&fx.ledger, &fx.bases, Options::default()).unwrap();
+        assert!(p.refused.is_empty(), "{:?}", p.refused);
+        let created: Vec<(&str, bool)> = p
+            .created
+            .iter()
+            .map(|c| (c.key.path.as_str(), c.absent_at_plan))
+            .collect();
+        assert_eq!(created, vec![("settings.json", true)], "{created:?}");
+        let mut missing: Vec<&str> = p.missing.iter().map(|m| m.key.path.as_str()).collect();
+        missing.sort_unstable();
+        assert_eq!(
+            missing,
+            vec![
+                "AGENTS.md",
+                "gone.md",
+                "skills/omm-x/SKILL.md",
+                "skills/omm-x/references/r.md",
+                "skills/omm-y/SKILL.md",
+                "skills/omm-y/references/r.md",
+                "themes/omm-x.tmTheme",
+            ],
+            "{missing:?}"
+        );
+        // The workspace root still stands: its file is removed as usual.
+        assert_eq!(p.remove.len(), 1, "{:?}", p.remove);
+        assert_eq!(p.remove[0].key.path.as_str(), ".omm/skills/deep/a/b.md");
+    }
+
+    #[test]
+    fn omm_state_removes_atomic_write_droppings() {
+        // A run killed between the temp create and the rename (scenario 26)
+        // leaves `.<name>.omm-tmp-<random>` behind: omm's own residue, so the
+        // uninstall removes it with the rest instead of keeping the root.
+        let fx = fixture();
+        fs::write(fx.bases.omm.join(".omm.lock.json.omm-tmp-ABC123"), b"stale").unwrap();
+        fs::write(fx.bases.omm.join("notes.txt"), b"mine").unwrap();
+        let st = omm_state(&fx.bases, false).unwrap();
+        let names = |v: &Vec<PathBuf>| {
+            v.iter()
+                .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
+                .collect::<Vec<_>>()
+        };
+        assert!(
+            names(&st.remove).contains(&".omm.lock.json.omm-tmp-ABC123".to_string()),
+            "{:?}",
+            names(&st.remove)
+        );
+        assert!(
+            names(&st.keep).contains(&"notes.txt".to_string()),
+            "{:?}",
+            names(&st.keep)
+        );
+        assert!(
+            !names(&st.keep)
+                .iter()
+                .any(|n| omm_host::fsx::is_tmp_name(n)),
+            "{:?}",
+            names(&st.keep)
+        );
     }
 
     #[test]

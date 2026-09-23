@@ -179,10 +179,13 @@ pub fn sweep_killed_pid(pid: u32) -> Result<Swept> {
     }
 }
 
-/// Which of `pids` are alive, by one `ps -o pid= -p <list>` call (unix). A
-/// pid that `ps` cannot see counts as dead. When `ps` cannot run, or refuses
-/// the request (macOS: `process id too large` rejects the whole list), every
-/// pid counts as alive so nothing is swept on a bad guess.
+/// Which of `pids` are alive, by one `ps -o pid=,stat= -p <list>` call
+/// (unix). A pid that `ps` cannot see counts as dead, and so does a zombie
+/// (`stat` starting with `Z`: exited, not yet reaped — dead for every
+/// purpose here, and the only thing an init-less container leaves behind).
+/// When `ps` cannot run, or refuses the request (macOS: `process id too
+/// large` rejects the whole list), every pid counts as alive so nothing is
+/// swept on a bad guess.
 #[cfg(unix)]
 pub fn pids_alive(pids: &BTreeSet<u32>) -> BTreeSet<u32> {
     if pids.is_empty() {
@@ -194,15 +197,24 @@ pub fn pids_alive(pids: &BTreeSet<u32>) -> BTreeSet<u32> {
         .collect::<Vec<_>>()
         .join(",");
     match std::process::Command::new("ps")
-        .args(["-o", "pid=", "-p", &list])
+        .args(["-o", "pid=,stat=", "-p", &list])
         .stdin(std::process::Stdio::null())
         .output()
     {
-        Ok(out) if out.stderr.is_empty() => String::from_utf8_lossy(&out.stdout)
-            .split_whitespace()
-            .filter_map(|t| t.parse::<u32>().ok())
-            .filter(|p| pids.contains(p))
-            .collect(),
+        Ok(out) if out.stderr.is_empty() => {
+            let mut alive = BTreeSet::new();
+            let text = String::from_utf8_lossy(&out.stdout).into_owned();
+            let mut cols = text.split_whitespace();
+            while let Some(pid) = cols.next() {
+                let stat = cols.next().unwrap_or("");
+                if let Ok(pid) = pid.parse::<u32>() {
+                    if pids.contains(&pid) && !stat.starts_with('Z') {
+                        alive.insert(pid);
+                    }
+                }
+            }
+            alive
+        }
         // `ps` complained (an unparsable pid, a missing option): no verdict.
         Ok(_) | Err(_) => pids.clone(),
     }
@@ -722,5 +734,30 @@ mod tests {
         assert!(dir.join("ms-live.sock.lease").exists());
         assert!(dir.join("sessions/live.json").exists());
         assert!(!dir.join("sessions/dead.json").exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn pids_alive_calls_an_unreaped_zombie_dead() {
+        // A SIGKILLed child that is never waited on stays a zombie until its
+        // parent exits (an init-less container never reaps); it is dead for
+        // every purpose here and must not read as alive.
+        let mut child = std::process::Command::new("sleep")
+            .arg("30")
+            .stdin(std::process::Stdio::null())
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        assert_eq!(pids_alive(&BTreeSet::from([pid])), BTreeSet::from([pid]));
+        kill_pid(pid).unwrap();
+        let start = std::time::Instant::now();
+        while !pids_alive(&BTreeSet::from([pid])).is_empty() {
+            assert!(
+                start.elapsed() < std::time::Duration::from_secs(10),
+                "killed sleep {pid} still reads as alive"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+        let _ = child.wait();
     }
 }

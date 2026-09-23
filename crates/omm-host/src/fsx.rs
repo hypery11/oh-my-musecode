@@ -118,6 +118,21 @@ pub fn realpath_for_write(path: &Path) -> Result<PathBuf> {
     }
 }
 
+/// True for the sibling temp files [`write_atomic`] leaves behind when the
+/// process dies between create and rename (`.<name>.omm-tmp-<random>`).
+/// Uninstall removes these like any other owned name, under the exclusive
+/// ledger lock: a temp file seen there belongs to a run that died before
+/// its rename, never to a live writer.
+pub fn is_tmp_name(name: &str) -> bool {
+    let Some(rest) = name.strip_prefix('.') else {
+        return false;
+    };
+    match rest.split_once(".omm-tmp-") {
+        Some((head, tail)) => !head.is_empty() && !tail.is_empty(),
+        None => false,
+    }
+}
+
 /// UTC timestamp suitable for a file suffix, e.g. `20260902T042000Z`.
 pub fn timestamp() -> String {
     let fmt = time::macros::format_description!("[year][month][day]T[hour][minute][second]Z");
@@ -730,5 +745,15 @@ mod tests {
         fs::write(&bin, b"\xcf\xfa\xed\xfe").unwrap();
         assert!(is_shell_script(&script));
         assert!(!is_shell_script(&bin));
+    }
+
+    #[test]
+    fn tmp_names_are_the_atomic_write_droppings() {
+        assert!(is_tmp_name(".omm.lock.json.omm-tmp-ABC123"));
+        assert!(is_tmp_name(".settings.json.omm-tmp-9z"));
+        assert!(!is_tmp_name("omm.lock.json"));
+        assert!(!is_tmp_name(".audit.log"));
+        assert!(!is_tmp_name("x.omm-tmp-y"));
+        assert!(!is_tmp_name(".omm-tmp-"));
     }
 }

@@ -156,6 +156,21 @@ impl Bases {
         self.refused_roots().iter().any(|r| r == canonical)
     }
 
+    /// True when the base root is absent from the disk (canonicalize fails
+    /// with NotFound): everything under it is Missing, never refused. A
+    /// kill between the ledger write and the filesystem write leaves
+    /// exactly this — the entry is recorded before its file lands.
+    pub fn root_absent(&self, base: Base) -> bool {
+        match self.root(base) {
+            Ok(root) => matches!(
+                fs::canonicalize(root),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound
+            ),
+            // No known root: let `resolve` report that.
+            Err(_) => false,
+        }
+    }
+
     /// Resolve `rel` under `base` (R4). The base root must exist.
     pub fn resolve(&self, base: Base, rel: &RelPath) -> Result<Resolved> {
         let refuse = |reason: String| LedgerError::Containment {
@@ -555,5 +570,18 @@ mod tests {
             .iter()
             .any(|p| p.ends_with("session-name-authority")));
         assert!(b.residue.iter().any(|p| p.ends_with("tbh-501-rt/muse")));
+    }
+
+    #[test]
+    fn root_absent_spots_a_gone_base_root() {
+        let dir = tempfile::tempdir().unwrap();
+        let b = bases(dir.path());
+        assert!(!b.root_absent(Base::MuseConfig));
+        fs::remove_dir_all(&b.muse_config).unwrap();
+        assert!(b.root_absent(Base::MuseConfig));
+        // A root that was never known is reported by `resolve`, not here.
+        let mut no_ws = b.clone();
+        no_ws.workspace = None;
+        assert!(!no_ws.root_absent(Base::Workspace));
     }
 }

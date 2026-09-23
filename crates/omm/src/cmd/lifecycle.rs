@@ -726,10 +726,17 @@ fn name_recreated_settings(ctx: &Ctx, bases: &Bases, plan: &mut uninstall::Plan)
     if plan.created.iter().any(|c| c.key == key) {
         return Ok(());
     }
-    let resolved = bases.resolve(key.base, &key.path)?;
+    let resolved = match bases.resolve(key.base, &key.path) {
+        Ok(r) => r.path,
+        // The whole config root is gone with the file (a kill before
+        // either landed): `abs` is already the Missing path `resolve`
+        // would report, straight from `Roots`.
+        Err(_) if bases.root_absent(key.base) => abs.clone(),
+        Err(e) => return Err(e.into()),
+    };
     plan.created.push(CreatedFile {
         key,
-        abs: resolved.path,
+        abs: resolved,
         absent_at_plan: true,
     });
     Ok(())

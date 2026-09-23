@@ -194,7 +194,11 @@ fn config_probes() {
     let h = host_or_skip!();
     let status = probe::config_status(&h.inv).expect("config status");
     assert_eq!(status.generation, hr::ENTERPRISE_GENERATION);
-    assert!(status.sources.len() >= 4, "{:?}", status.sources);
+    assert!(
+        status.sources.len() >= hr::ENTERPRISE_SOURCES,
+        "{:?}",
+        status.sources
+    );
 
     let dir = h.sb.root.join("cfgv");
     std::fs::create_dir_all(&dir).unwrap();
