@@ -2,8 +2,26 @@
 
 All notable changes to oh-my-musecode. The format follows Keep a Changelog; versions follow SemVer.
 Every host fact named here was measured against Meta Muse Code `1.0.1-R2006.1` (muse-stable),
-`1.1.0-R2009.1` (muse-canary) and, since 1.0.0, `1.3.0-R3057.1`; nothing gates on a version number
+`1.1.0-R2009.1` (muse-canary), since 1.0.0 `1.3.0-R3057.1`, since the channel moved
+`1.3.0-R3401.1`; nothing gates on a version number
 (ARCHITECTURE R15).
+
+## [Unreleased]
+
+### Fixed
+
+- CI never green since the 1.0.0 push: `config status` Generation covers the
+  OS-specific source list (macOS four lines, Linux two), so the enterprise row
+  is now pinned per OS instead of failing ubuntu on a macOS hash; the 1 ms
+  routing p50 flakes on loaded runners (100 ms still catches I/O in the
+  decision path); the `previous` matrix legs are dropped — fingerprints and MSP
+  counts differ per build by design, so a full gate on an older binary cannot
+  pass, and a permanently red leg hides real regressions.
+- Host pins refreshed to `1.3.0-R3401.1` (the stable channel moved): gates
+  `subscription_launch` and `context_meter` removed (45 gates), new order-185
+  `agent_definition_catalog` context block, MSP `session/listChanged`
+  notification plus four new fingerprints, bundled `CREDITS.md` and
+  `slack-ui.md` (42 files). See `docs/host-reality.md` Release log.
 
 ## [1.0.0] — 2026-09-16
 

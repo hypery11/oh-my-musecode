@@ -27,7 +27,7 @@
     "skills": 20,
     "visible_by_default": 19,
     "gated": 1,
-    "package_files": 40,
+    "package_files": 42,
     "slash_shortcuts": 9
   },
   "catalog_cost": {
@@ -175,7 +175,7 @@
       "slash_shortcut": true,
       "argument_hint": null,
       "short_description": "Continue a Claude Code session here",
-      "skill_md_bytes": 2169,
+      "skill_md_bytes": 2864,
       "description": "Continue work from a local Claude Code session in Muse Code. Use when the user asks to resume, continue, or recover unfinished Claude Code work, with or without a session ID or log path; call read_skill for bundled:resume-claude before reading its transcript. Explicit /import requests use import."
     },
     {
@@ -189,7 +189,7 @@
       "slash_shortcut": true,
       "argument_hint": null,
       "short_description": "Continue a Codex session here",
-      "skill_md_bytes": 2058,
+      "skill_md_bytes": 2751,
       "description": "Continue work from a local Codex session in Muse Code. Use when the user asks to resume, continue, or recover unfinished Codex work, with or without a session ID or log path; call read_skill for bundled:resume-codex before reading its transcript. Explicit /import requests use import."
     },
     {
@@ -231,7 +231,7 @@
       "slash_shortcut": true,
       "argument_hint": null,
       "short_description": null,
-      "skill_md_bytes": 9844,
+      "skill_md_bytes": 10062,
       "description": "Run an explicitly requested decision interview and record each settled decision in durable project documentation."
     },
     {
@@ -320,13 +320,14 @@
     }
   ],
   "package_files": [
+    { "path": "CREDITS.md", "bytes": 459, "note": "new on 1.3.0-R3401.1: outside work bundled skills are built on" },
     { "path": "LICENSE", "bytes": 10847, "note": "Apache-2.0" },
     { "path": "skills/browser-app-delivery/SKILL.md", "bytes": 10282 },
     { "path": "skills/create-plugin/SKILL.md", "bytes": 7251 },
     { "path": "skills/create-plugin/references/capability-examples.json", "bytes": 23644 },
     { "path": "skills/create-plugin/references/native-plugin-contract.md", "bytes": 4640 },
     { "path": "skills/create-skill/SKILL.md", "bytes": 5697 },
-    { "path": "skills/daemon/SKILL.md", "bytes": 59965 },
+    { "path": "skills/daemon/SKILL.md", "bytes": 59978 },
     { "path": "skills/daemon/references/native-delivery.md", "bytes": 3049 },
     { "path": "skills/daemon/references/onboarding.md", "bytes": 8121 },
     { "path": "skills/daemon/references/progress-and-replies.md", "bytes": 10725 },
@@ -338,7 +339,7 @@
     { "path": "skills/git/SKILL.md", "bytes": 4110 },
     { "path": "skills/git/scripts/workspace-recovery.sh", "bytes": 7974 },
     { "path": "skills/greenfield-project-scaffolding/SKILL.md", "bytes": 6211 },
-    { "path": "skills/grill/SKILL.md", "bytes": 9844 },
+    { "path": "skills/grill/SKILL.md", "bytes": 10062 },
     { "path": "skills/host-manager/SKILL.md", "bytes": 38037 },
     { "path": "skills/host-manager/references/lane-runtime.md", "bytes": 18738 },
     { "path": "skills/host-manager/scripts/lane_runtime.py", "bytes": 64926 },
@@ -350,9 +351,10 @@
     { "path": "skills/python-env/SKILL.md", "bytes": 2712 },
     { "path": "skills/read-session/SKILL.md", "bytes": 9612 },
     { "path": "skills/requirements-clarification/SKILL.md", "bytes": 2745 },
-    { "path": "skills/resume-claude/SKILL.md", "bytes": 2169 },
-    { "path": "skills/resume-codex/SKILL.md", "bytes": 2058 },
-    { "path": "skills/slack-connector/SKILL.md", "bytes": 43416 },
+    { "path": "skills/resume-claude/SKILL.md", "bytes": 2864 },
+    { "path": "skills/resume-codex/SKILL.md", "bytes": 2751 },
+    { "path": "skills/slack-connector/SKILL.md", "bytes": 47825 },
+    { "path": "skills/slack-connector/references/slack-ui.md", "bytes": 27290, "note": "new on 1.3.0-R3401.1" },
     { "path": "skills/slack-connector/resources/slack-app-manifest.json", "bytes": 1449 },
     { "path": "skills/slack-connector/scripts/hop_report.py", "bytes": 10914 },
     { "path": "skills/slack-connector/scripts/slack_connector.py", "bytes": 301342 },

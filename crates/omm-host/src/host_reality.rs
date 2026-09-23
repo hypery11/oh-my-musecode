@@ -343,16 +343,17 @@ pub const FRAME_SCHEMA_VERSION: u64 = 1;
 /// MSP wire envelope `schemaVersion` in `manifest.json` (msp-protocol.md §2.3).
 pub const MSP_ENVELOPE_SCHEMA_VERSION: u64 = 1;
 /// `muse schema generate-json-schema` → `manifest.json` → `fingerprint` (stable surface).
+/// 1.3.0-R3401.1 adds `session/listChanged` to notifications.
 pub const MSP_STABLE_FINGERPRINT: &str =
-    "sha256:ab69549a7ebb423fce94068762da0b5ff3cdec1f8fc263dcc17248eda117f852";
+    "sha256:7469c9e352e67def4a59df7e439984d7194fa351e1c8b7abb34060fd977ced81";
 /// Same with `--experimental` (byte-identical schema, different fingerprint; msp-protocol.md §2.4).
 pub const MSP_EXPERIMENTAL_FINGERPRINT: &str =
-    "sha256:3ebfa82522616e8bef05585ee0c9c84263956b95fa991d45f5b05ed93e3ea9a3";
+    "sha256:2db88d9ee93131257757ab3cf74026eab9079813a4cb82c45cc231901a170fc6";
 /// SHA-256 of the emitted `msp.schema.json` (canary-diff.md §5).
 pub const MSP_SCHEMA_JSON_SHA256: &str =
-    "4101b1c23179360f4dd9696ef797df58bea9240d86b79311706114a407da779b";
+    "ed442d494cf8cdb85f0b1487f8d0f54b7570548561c6c92d6def09ce107e1664";
 /// SHA-256 of the emitted `msp.d.ts` (canary-diff.md §5).
-pub const MSP_DTS_SHA256: &str = "fd88c70b9e57e8f3f32243946c51078500c453296d4a1072742a84fc1192927e";
+pub const MSP_DTS_SHA256: &str = "2c2a7b481db1fe1e659789cc687cf47f4c7d1a96fec09eb7dc78f7b13c626c39";
 /// `muse config status` → `Generation:` (config-paths.md §7.1). The hash covers
 /// the source list, which is OS-specific: macOS reports `macos_managed_preferences`
 /// planes (four lines, all absent) while Linux reports only `system_file` (two
@@ -367,7 +368,8 @@ pub const ENTERPRISE_GENERATION: &str =
 /// MSP client→server methods, counted from `msp.schema.json` → `methods` (msp-protocol.md §1).
 pub const MSP_METHODS: usize = 47;
 /// MSP server→client notifications, `msp.schema.json` → `notifications` (msp-protocol.md §1).
-pub const MSP_NOTIFICATIONS: usize = 30;
+/// 31 on 1.3.0-R3401.1 (`session/listChanged` joined).
+pub const MSP_NOTIFICATIONS: usize = 31;
 /// MSP error registry rows, `msp.schema.json` → `errors` (msp-protocol.md §1).
 pub const MSP_ERROR_CODES: usize = 31;
 
@@ -378,10 +380,12 @@ pub const MSP_ERROR_CODES: usize = 31;
 /// `MUSE_EXPERIMENTAL_*` gates listed in gates.json — 41 on 1.0.1-R2006.1
 /// (cli-surface.md §4.1; config-paths.md verification C3) plus
 /// `ultra_reasoning_effort`, first observed on 1.0.3-R2198.1 (gates.json
-/// `since`; `docs/experiments/stable-1.0.3-diff.md`). The count a given build
-/// is expected to show is derived per build by [`Gates::partition_for_build`]
-/// from what probing finds, never from this constant alone (R15).
-pub const GATES_TOTAL: usize = 47;
+/// `since`; `docs/experiments/stable-1.0.3-diff.md`), 47 on 1.3.0-R3057.1,
+/// 45 on 1.3.0-R3401.1 (`subscription_launch` and `context_meter` removed).
+/// The count a given build is expected to show is derived per build by
+/// [`Gates::partition_for_build`] from what probing finds, never from this
+/// constant alone (R15).
+pub const GATES_TOTAL: usize = 45;
 /// Gates resolving `enabled=true source="default"` (canary-diff.md §1 rows 4–5;
 /// unchanged on 1.0.3-R2198.1).
 pub const GATES_DEFAULT_ON: usize = 17;
@@ -394,7 +398,8 @@ pub const BUNDLED_SKILLS: usize = 20;
 /// bundled-skills.json `counts.visible_by_default`).
 pub const BUNDLED_SKILLS_VISIBLE_DEFAULT: usize = 19;
 /// Files materialised under `skills/bundled/muse-core/` (bundled-skills.json `package_files`).
-pub const BUNDLED_SKILL_PACKAGE_FILES: usize = 40;
+/// 42 on 1.3.0-R3401.1 (`CREDITS.md` plus `skills/slack-connector/references/slack-ui.md`).
+pub const BUNDLED_SKILL_PACKAGE_FILES: usize = 42;
 /// Active tools of an echo session in a **trusted** workspace (canary-diff.md row 25;
 /// the six `subagent_*` tools are absent when the workspace is untrusted — measured
 /// 2026-09-02, `docs/experiments/context-slimming.md` §7.2, see `probe::echo_session`).
@@ -410,11 +415,16 @@ pub const TOP_LEVEL_COMMANDS: usize = 17;
 /// Commands listed by a bare `muse --help` (cli-surface.md §1.1).
 pub const ADVERTISED_COMMANDS: usize = 15;
 /// Context blocks of an echo session in a trusted workspace, by order
-/// (canary-diff.md row 21; sessions-memory-rules.md §5).
-pub const CONTEXT_BLOCK_ORDERS: [u32; 9] = [85, 95, 96, 180, 181, 186, 200, 240, u32::MAX];
+/// (canary-diff.md row 21; sessions-memory-rules.md §5). Order 185
+/// `agent_definition_catalog` joined on 1.3.0-R3401.1.
+pub const CONTEXT_BLOCK_ORDERS: [u32; 10] = [85, 95, 96, 180, 181, 185, 186, 200, 240, u32::MAX];
 /// The same session in an **untrusted** workspace: no order-186
 /// `subagent_delegation` (context-slimming.md §7.2, measured 2026-09-02).
-pub const CONTEXT_BLOCK_ORDERS_UNTRUSTED: [u32; 8] = [85, 95, 96, 180, 181, 200, 240, u32::MAX];
+pub const CONTEXT_BLOCK_ORDERS_UNTRUSTED: [u32; 9] =
+    [85, 95, 96, 180, 181, 185, 200, 240, u32::MAX];
+/// Context order of the `agent_definition_catalog` block (new on
+/// 1.3.0-R3401.1, trusted and untrusted).
+pub const CONTEXT_ORDER_AGENT_DEFINITION_CATALOG: u32 = 185;
 /// Context order of the trust-gated `subagent_delegation` block.
 pub const CONTEXT_ORDER_SUBAGENT_DELEGATION: u32 = 186;
 /// Context order of `workflow_availability_proactive` (1,355 B,

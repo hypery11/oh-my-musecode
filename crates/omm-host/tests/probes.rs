@@ -82,9 +82,9 @@ fn gates_probe_and_override_detection() {
     let report = probe::gates(&h.inv).expect("gates");
     // The gates a build must show come from gates.json: every untagged row
     // plus every `since`-tagged row its trace shows; a tagged row it lacks is
-    // OLDER-BUILD (1.0.1-R2006.1 lacks `ultra_reasoning_effort`; 1.0.3-R2198.1 lacks the five
+    // OLDER-BUILD (1.0.1-R2006.1 lacks `ultra_reasoning_effort`; 1.0.3-R2198.1 lacks the four
     // 1.3.0 gates `official_plugin_marketplace`, `memory_repository_sync`,
-    // `native_connector_delivery`, `vim` and `context_meter`, and defaults
+    // `native_connector_delivery` and `vim`, and defaults
     // `voice`, `voice_default_on` and `todo_reminder` to off — each `since` group
     // passes whole or not at all; 1.0.3-R2198.1
     // shows it). An unlisted or a missing untagged gate is drift (R15).
