@@ -42,8 +42,28 @@ step cargo clippy --workspace --all-targets -- -D warnings
 # Tests: every crate, every target, no fail-fast; the log feeds the summary.
 log="$(mktemp -t omm-gate.XXXXXX)"
 trap 'rm -f "$log"' EXIT
-echo "== cargo test --workspace --no-fail-fast"
-if cargo test --workspace --no-fail-fast 2>&1 | tee "$log"; then
+
+# Timing-sensitive tests first, on a quiet box. The cold-dispatch bounds
+# (R16, 5 ms) measure process spawn, which a fully parallel workspace run
+# skews past the bound on shared CI runners (measured on one box: 3.0 ms
+# quiet vs 6.8 ms under load). They run here alone, then skipped below so
+# the gate counts them once.
+echo "== timing tests (quiet box)"
+if cargo test -p omm --test cmd_c hook_dispatch_is_under_five_milliseconds -- --exact 2>&1 | tee -a "$log"; then
+  steps+=("ok    timing: cmd_c hook dispatch")
+else
+  steps+=("RED   timing: cmd_c hook dispatch")
+  red=1
+fi
+if cargo test -p omm --test e2e s09_hook_dispatch_answers_in_json_under_five_ms_and_fails_open -- --exact 2>&1 | tee -a "$log"; then
+  steps+=("ok    timing: e2e s09 hook dispatch")
+else
+  steps+=("RED   timing: e2e s09 hook dispatch")
+  red=1
+fi
+
+echo "== cargo test --workspace --no-fail-fast (timing tests skipped: counted above)"
+if cargo test --workspace --no-fail-fast -- --skip hook_dispatch_is_under_five_milliseconds --skip s09_hook_dispatch_answers_in_json_under_five_ms_and_fails_open 2>&1 | tee -a "$log"; then
   steps+=("ok    cargo test --workspace --no-fail-fast")
 else
   steps+=("RED   cargo test --workspace --no-fail-fast")
