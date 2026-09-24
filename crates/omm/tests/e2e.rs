@@ -4259,9 +4259,19 @@ fn s26b_rerun_rewrites_ledgered_but_missing_themes() {
     let d = h.doctor(true);
     let rows = non_info_rows(&d.json);
     assert!(rows.is_empty(), "doctor after the rerun: {rows:?}");
+    // What a kill inside the theme write_atomic leaves: an unledgered
+    // dropping next to the rewritten files. The uninstall sweep must take
+    // it with the rest so the prune is not blocked.
+    std::fs::write(
+        themes_dir.join(".omm-carbon.tmTheme.omm-tmp-DEADBEEF"),
+        b"stale",
+    )
+    .expect("plant dropping");
     let un = h.omm(&["uninstall"]);
     assert_eq!(un.code, 0, "{}", un.ctx());
     assert_eq!(un.json["report"]["errors"], json!([]), "{}", un.ctx());
+    assert_eq!(un.json["report"]["tmps_removed"], json!(1), "{}", un.ctx());
+    assert!(!themes_dir.exists(), "the dropping blocked the prune");
     assert!(h.ledger().is_none());
     assert!(
         !h.omm_root().exists(),

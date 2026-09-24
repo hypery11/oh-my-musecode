@@ -1886,6 +1886,7 @@ pub fn uninstall(ctx: &Ctx, args: &UninstallArgs) -> Result<ExitCode> {
             "registrations_dropped": report.registrations_dropped,
             "registrations_kept": report.registrations_kept,
             "dirs_removed": report.dirs_removed,
+            "tmps_removed": report.tmps_removed,
             "omm_state_removed": report.omm_state_removed,
             "ledger_removed": report.ledger_removed,
             "errors": report.errors,

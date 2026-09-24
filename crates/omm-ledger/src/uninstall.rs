@@ -1170,6 +1170,24 @@ pub fn is_empty_shared_document(bytes: &[u8]) -> bool {
         .unwrap_or(false)
 }
 
+/// Remove omm's own atomic-write droppings ([`fsx::is_tmp_name`]) from
+/// `dir`, returning how many went. A run killed between the temp create
+/// and the rename leaves them in managed dirs too, unledgered; the prune
+/// below calls this before each `remove_dir` so a dropping never blocks it.
+/// Runs under the exclusive ledger lock, like every other removal here.
+fn sweep_tmps(dir: &Path) -> usize {
+    let mut swept = 0;
+    if let Ok(rd) = fs::read_dir(dir) {
+        for entry in rd.flatten() {
+            let name = entry.file_name();
+            if fsx::is_tmp_name(&name.to_string_lossy()) && fs::remove_file(entry.path()).is_ok() {
+                swept += 1;
+            }
+        }
+    }
+    swept
+}
+
 fn omm_state(bases: &Bases, force: bool) -> Result<OmmState> {
     let root = &bases.omm;
     let canonical = fs::canonicalize(root).unwrap_or_else(|_| root.clone());
@@ -1471,6 +1489,8 @@ pub struct Report {
     /// sake ([`UndoOutcome::Kept`], or predicted so by the plan).
     pub registrations_kept: usize,
     pub dirs_removed: usize,
+    /// Atomic-write droppings swept from managed dirs before the prune.
+    pub tmps_removed: usize,
     pub omm_state_removed: usize,
     pub ledger_removed: bool,
     pub errors: Vec<String>,
@@ -1873,6 +1893,11 @@ pub fn apply(
     for (dir, base_root) in touched_dirs {
         let mut cur = dir;
         while cur != base_root && cur.starts_with(&base_root) && !bases.is_refused_root(&cur) {
+            // Sweep omm's own atomic-write droppings first: a run killed
+            // between the temp create and the rename (scenario 26) leaves
+            // `.<name>.omm-tmp-<random>` behind, and an unledgered dropping
+            // must not block the prune of a dir omm just emptied.
+            report.tmps_removed += sweep_tmps(&cur);
             match fs::remove_dir(&cur) {
                 Ok(()) => report.dirs_removed += 1,
                 Err(_) => break, // not empty (or gone): stop climbing
@@ -2604,6 +2629,27 @@ mod tests {
             "{:?}",
             names(&st.keep)
         );
+    }
+
+    #[test]
+    fn sweep_tmps_clears_only_omm_droppings() {
+        // A killed write_atomic leaves `.<name>.omm-tmp-<random>` in a
+        // managed dir; the prune calls this so the dropping never blocks
+        // it, while real files (even dotfiles) are left alone.
+        let dir = tempfile::tempdir().unwrap();
+        let dir = dir.path();
+        fs::write(dir.join(".omm-carbon.tmTheme.omm-tmp-ABC123"), b"stale").unwrap();
+        fs::write(dir.join(".omm-tmp-"), b"not a dropping").unwrap();
+        fs::write(dir.join(".keepme"), b"mine").unwrap();
+        fs::write(dir.join("omm-slate.tmTheme"), b"managed").unwrap();
+        assert_eq!(sweep_tmps(dir), 1);
+        assert!(!dir.join(".omm-carbon.tmTheme.omm-tmp-ABC123").exists());
+        assert!(dir.join(".omm-tmp-").exists());
+        assert!(dir.join(".keepme").exists());
+        assert!(dir.join("omm-slate.tmTheme").exists());
+        assert_eq!(sweep_tmps(dir), 0);
+        // Missing dirs are not an error: nothing to sweep.
+        assert_eq!(sweep_tmps(&dir.join("gone")), 0);
     }
 
     #[test]
