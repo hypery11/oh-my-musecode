@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "oh-my-musecode",
   "displayName": "oh-my-musecode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "oh-my-musecode: a curated content bundle, thin CLI and git marketplace for Meta Muse Code.",
   "compat": {
     "source": "native",

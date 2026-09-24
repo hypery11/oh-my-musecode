@@ -263,7 +263,7 @@ checksum = "521739c6d2bac4aa25192232afe6841231376b2b26d4d9fae5ecf8ca5772e441"
 
 [[package]]
 name = "omm"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "omm-doctor",
@@ -279,7 +279,7 @@ dependencies = [
 
 [[package]]
 name = "omm-doctor"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "omm-host",
  "serde",
@@ -291,7 +291,7 @@ dependencies = [
 
 [[package]]
 name = "omm-host"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "hex",
  "rustix",
@@ -306,7 +306,7 @@ dependencies = [
 
 [[package]]
 name = "omm-ledger"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "hex",
  "omm-host",
@@ -321,7 +321,7 @@ dependencies = [
 
 [[package]]
 name = "omm-manifest"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "hex",
  "omm-host",
