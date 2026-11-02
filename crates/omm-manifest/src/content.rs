@@ -383,7 +383,7 @@ fn scan(root: &Path, problems: &mut Vec<Finding>) -> Result<Vec<ContentFile>> {
             continue;
         }
         let rel_path = path.strip_prefix(root).unwrap_or(path);
-        let Some(rel_str) = rel_path.to_str() else {
+        let Some(_rel_str) = rel_path.to_str() else {
             problems.push(Finding::error(
                 "fs-non-utf8-name",
                 path.to_path_buf(),
@@ -392,7 +392,9 @@ fn scan(root: &Path, problems: &mut Vec<Finding>) -> Result<Vec<ContentFile>> {
             ));
             continue;
         };
-        if rel_str.contains('\\') {
+        // Windows separates relative paths with `\`; only a backslash surviving
+        // posix normalisation is a literal in a file name (R12).
+        if posix(rel_path).contains('\\') {
             problems.push(Finding::error(
                 "fs-backslash",
                 path.to_path_buf(),
